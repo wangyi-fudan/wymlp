@@ -10,11 +10,12 @@ private:
 	type	act(type	x) {	return	x>0?x/(1+x):x/(1-x);	}
 	type	gra(type	x) {	return	x>0?(1-x)*(1-x):(1+x)*(1+x);	}
 	unsigned	size(void) {	return	(input+1)*hidden+(layer-1)*hidden*hidden+output*hidden;	}
+	unsigned	siz1(void) {	return	2*layer*hidden+output;	}
 	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
 	unsigned	aoff(unsigned	l) {	return	l*hidden;	}
 	unsigned	doff(unsigned	l) {	return	layer*hidden+l*hidden;	}
 public:
-	wymlp(type	dropout) {	drop=dropout;	weight=new	type[size()*sizeof(type)];	work=new	type[(2*layer*hidden+output)*sizeof(type)];	}
+	wymlp(type	dropout) {	drop=dropout;	weight=new	type[size()*sizeof(type)];	work=new	type[siz1()*sizeof(type)];	}
 	~wymlp() {	delete	[]	weight;	delete	[]	work;	}
 	void	random(uint64_t	s) {	for(unsigned	i=0;	i<size();	i++)	weight[i]=wy2gau(wyrand(&s));	}
 	bool	save(const	char	*F) {
@@ -43,7 +44,7 @@ public:
 	}
 	void	model(type	*x,	type	*y,	type	alpha,	uint64_t	seed) {	//	set alpha<0 to predict. x and y are suggested to be standized
 		type	*p,	*q,	*o,	*w,	*g,	*h,	s,	wh=1/sqrtf(hidden),	wi=(1-(alpha<0)*drop)/sqrtf(input+1);
-		memset(work,	0,	(2*layer*hidden+output)*sizeof(type));
+		memset(work,	0,	siz1()*sizeof(type));
 		p=work+aoff(0);
 		for(unsigned  i=0;  i<=input; i++) if(alpha<0||wy2u01(wyhash64(i,seed))>=drop) {
 			w=weight+woff(i,0);	s=i==input?1:x[i];	if(s==0)	continue;
