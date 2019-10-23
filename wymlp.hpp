@@ -91,7 +91,7 @@ public:
 	}
 };
 /*	Example:
-	wymlp<4,16,3,1,0>	model;
+	wymlp<4,16,3,1,0>	model(0.01);
 	model.ramdom(time(NULL));
 	float	x[4]={1,2,3,5},	y[1]={2};
 	model.model(x,y,0.1,wygrand());	//	to learn x-y pair
