@@ -4,18 +4,18 @@
 #include	<cstdio>
 #include	<cmath>
 using	namespace	std;
-template<unsigned	input,	unsigned	hidden,	unsigned	layer,	unsigned	output,	unsigned	loss>	//loss:		0:squared loss	1:logistic loss	2:softmax loss
+template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	layer,	unsigned	output,	unsigned	loss>	//loss:		0:squared loss	1:logistic loss	2:softmax loss
 class	wymlp {
 private:
-	float	drop,	*weight,	*work;
-	float	act(float	x) {	return	x>0?x/(1+x):x/(1-x);	}
-	float	gra(float	x) {	return	x>0?(1-x)*(1-x):(1+x)*(1+x);	}
+	type	drop,	*weight,	*work;
+	type	act(type	x) {	return	x>0?x/(1+x):x/(1-x);	}
+	type	gra(type	x) {	return	x>0?(1-x)*(1-x):(1+x)*(1+x);	}
 	unsigned	size(void) {	return	(input+1)*hidden+(layer-1)*hidden*hidden+output*hidden;	}
 	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
 	unsigned	aoff(unsigned	l) {	return	l*hidden;	}
 	unsigned	doff(unsigned	l) {	return	layer*hidden+l*hidden;	}
 public:
-	wymlp(float	dropout) {	drop=dropout;	weight=(float*)malloc(size()*sizeof(float));	work=(float*)malloc((2*layer*hidden+output)*sizeof(float));	}
+	wymlp(type	dropout) {	drop=dropout;	weight=(type*)malloc(size()*sizeof(type));	work=(type*)malloc((2*layer*hidden+output)*sizeof(type));	}
 	~wymlp() {	free(weight);	free(work);	}
 	void	random(uint64_t	s) {	for(unsigned	i=0;	i<size();	i++)	weight[i]=wy2gau(wyrand(&s));	}
 	bool	save(const	char	*F) {
@@ -26,8 +26,8 @@ public:
 		n=layer;	if(fwrite(&n,	sizeof(unsigned),	1,	f)!=1)	return	0;
 		n=output;	if(fwrite(&n,	sizeof(unsigned),	1,	f)!=1)	return	0;
 		n=loss;		if(fwrite(&n,	sizeof(unsigned),	1,	f)!=1)	return	0;
-		if(fwrite(&drop,	sizeof(float),	1,	f)!=1)	return	0;
-		if(fwrite(weight,	size()*sizeof(float),	1,	f)!=1)	return	0;
+		if(fwrite(&drop,	sizeof(type),	1,	f)!=1)	return	0;
+		if(fwrite(weight,	size()*sizeof(type),	1,	f)!=1)	return	0;
 		fclose(f);	return	1;
 	}
 	bool	load(const	char	*F) {
@@ -38,13 +38,13 @@ public:
 		if(fread(&n,	sizeof(unsigned),	1,	f)!=1||n!=layer)	return	0;
 		if(fread(&n,	sizeof(unsigned),	1,	f)!=1||n!=output)	return	0;
 		if(fread(&n,	sizeof(unsigned),	1,	f)!=1||n!=loss)	return	0;
-		if(fread(&drop,	sizeof(float),	1,	f)!=1)	return	0;
-		if(fread(weight,	size()*sizeof(float),	1,	f)!=1)	return	0;
+		if(fread(&drop,	sizeof(type),	1,	f)!=1)	return	0;
+		if(fread(weight,	size()*sizeof(type),	1,	f)!=1)	return	0;
 		fclose(f);	return	1;
 	}
-	void	model(float	*x,	float	*y,	float	alpha,	uint64_t	seed) {	//	set alpha<0 to predict. x and y are suggested to be standized
-		float	*p,	*q,	*o,	*w,	*g,	*h,	s,	wh=1/sqrtf(hidden),	wi=(1-(alpha<0)*drop)/sqrtf(input+1);
-		memset(work,	0,	(2*layer*hidden+output)*sizeof(float));
+	void	model(type	*x,	type	*y,	type	alpha,	uint64_t	seed) {	//	set alpha<0 to predict. x and y are suggested to be standized
+		type	*p,	*q,	*o,	*w,	*g,	*h,	s,	wh=1/sqrtf(hidden),	wi=(1-(alpha<0)*drop)/sqrtf(input+1);
+		memset(work,	0,	(2*layer*hidden+output)*sizeof(type));
 		p=work+aoff(0);	
 		for(unsigned  i=0;  i<=input; i++) if(alpha<0||wy2u01(wyhash64(i,seed))>=drop) {
 			s=i==input?1:x[i];	if(s==0)	continue;	w=weight+woff(i,0);
@@ -91,7 +91,7 @@ public:
 	}
 };
 /*	Example:
-	wymlp<4,16,3,1,0>	model(0.01);
+	wymlp<float,4,16,3,1,0>	model(0.01);
 	model.ramdom(time(NULL));
 	float	x[4]={1,2,3,5},	y[1]={2};
 	model.model(x,y,0.1,wygrand());	//	to learn x-y pair
