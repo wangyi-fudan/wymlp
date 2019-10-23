@@ -1,6 +1,5 @@
 //Author: Wang Yi <godspeed_china@yeah.net>
 #include	"wyhash.h"
-#include	<cstdlib>
 #include	<cstdio>
 #include	<cmath>
 using	namespace	std;
