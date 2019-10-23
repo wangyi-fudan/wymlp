@@ -1,3 +1,4 @@
+//Author: Wang Yi <godspeed_china@yeah.net>
 #include	"wyhash.h"
 #include	<cstdlib>
 #include	<cstdio>
