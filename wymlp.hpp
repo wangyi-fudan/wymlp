@@ -15,8 +15,8 @@ private:
 	unsigned	aoff(unsigned	l) {	return	l*hidden;	}
 	unsigned	doff(unsigned	l) {	return	layer*hidden+l*hidden;	}
 public:
-	wymlp(type	dropout) {	drop=dropout;	weight=(type*)malloc(size()*sizeof(type));	work=(type*)malloc((2*layer*hidden+output)*sizeof(type));	}
-	~wymlp() {	free(weight);	free(work);	}
+	wymlp(type	dropout) {	drop=dropout;	weight=new	type[size()*sizeof(type)];	work=new	type[(2*layer*hidden+output)*sizeof(type)];	}
+	~wymlp() {	delete	[]	weight;	delete	[]	work;	}
 	void	random(uint64_t	s) {	for(unsigned	i=0;	i<size();	i++)	weight[i]=wy2gau(wyrand(&s));	}
 	bool	save(const	char	*F) {
 		FILE	*f=fopen(F,	"wb");	if(f==NULL)	return	0;
@@ -45,9 +45,9 @@ public:
 	void	model(type	*x,	type	*y,	type	alpha,	uint64_t	seed) {	//	set alpha<0 to predict. x and y are suggested to be standized
 		type	*p,	*q,	*o,	*w,	*g,	*h,	s,	wh=1/sqrtf(hidden),	wi=(1-(alpha<0)*drop)/sqrtf(input+1);
 		memset(work,	0,	(2*layer*hidden+output)*sizeof(type));
-		p=work+aoff(0);	
+		p=work+aoff(0);
 		for(unsigned  i=0;  i<=input; i++) if(alpha<0||wy2u01(wyhash64(i,seed))>=drop) {
-			s=i==input?1:x[i];	if(s==0)	continue;	w=weight+woff(i,0);
+			w=weight+woff(i,0);	s=i==input?1:x[i];	if(s==0)	continue;
 			for(unsigned	j=0;	j<hidden;	j++)	p[j]+=s*w[j];
 		}
 		for(unsigned	i=0;	i<hidden;	i++)	p[i]=i?act(wi*p[i]):1;
@@ -66,12 +66,12 @@ public:
 			o[i]=wh*s;
 		}
 		switch(loss) {
-		case	0:	for(unsigned	i=0;	i<output;	i++)	if(alpha<0)	y[i]=o[i];	else	o[i]-=y[i];	
+		case	0:	for(unsigned	i=0;	i<output;	i++)	if(alpha<0)	y[i]=o[i];	else	o[i]-=y[i];
 			break;
-		case	1:	for(unsigned	i=0;	i<output;	i++)	if(alpha<0)	y[i]=1/(1+expf(-o[i]));	else	o[i]=1/(1+expf(-o[i]))-y[i];	
+		case	1:	for(unsigned	i=0;	i<output;	i++)	if(alpha<0)	y[i]=1/(1+expf(-o[i]));	else	o[i]=1/(1+expf(-o[i]))-y[i];
 			break;
-		case	2:	for(unsigned	i=s=0;	i<output;	i++)	s+=(o[i]=i?expf(o[i]):1);	
-					for(unsigned	i=0;	i<output;	i++)	if(alpha<0)	y[i]=o[i]/s;	else	o[i]=i?(o[i]/s-(i==(unsigned)y[0])):0;	
+		case	2:	for(unsigned	i=s=0;	i<output;	i++)	s+=(o[i]=i?expf(o[i]):1);
+			for(unsigned	i=0;	i<output;	i++)	if(alpha<0)	y[i]=o[i]/s;	else	o[i]=i?(o[i]/s-(i==(unsigned)y[0])):0;
 			break;
 		}
 		if(alpha<0) return;
@@ -89,7 +89,7 @@ public:
 		p=work+aoff(0);	g=work+doff(0);
 		for(unsigned	i=0;	i<hidden;	i++)	g[i]*=gra(p[i])*wi;
 		for(unsigned  i=0;  i<=input; i++) if(wy2u01(wyhash64(i,seed))>=drop) {
-			s=(i==input?1:x[i]);	if(s==0)	continue;	w=weight+woff(i,0);
+			w=weight+woff(i,0);	s=(i==input?1:x[i]);	if(s==0)	continue;
 			for(unsigned	j=0;	j<hidden;	j++)	w[j]-=s*g[j];
 		}
 	}
