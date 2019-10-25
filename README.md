@@ -1,5 +1,5 @@
-# Real Time Intelligence for Every Machine
-Tiny fast portable on-the-fly deep neural network for regression and classification within 50 LOC.
+# Real-Time Intelligence for Every Machine
+Tiny fast portable real-time deep neural network for regression and classification within 50 LOC.
 
 Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0
 
