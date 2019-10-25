@@ -27,14 +27,14 @@ Example:
 	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
 ```
 
-Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread
+Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0
 
-|HiddenUnits|	SinglePrecision/GFLOPS	|DoublePrecision/GFLOPS|
-|----|----|----|
-|4|	2.3| 	2.1 |
-|8|	3.0|	2.8 |
-|16|	3.3| 	3.1 |
-|32|	10.5| 	6.6 |
-|64|	13.7| 	7.8 |
-|128|	15.1| 	6.3 |
-|256|	12.2| 	6.7 |
+|HiddenUnits|	float/GFLOPS	|double/GFLOPS|long double/GFLOPS|
+|----|----|----|----|
+|4|	2.3| 	2.1 |0.78|
+|8|	3.0|	2.8 |0.66|
+|16|	3.3| 	3.1 |0.71|
+|32|	10.5| 	6.6 |0.76|
+|64|	13.7| 	7.8 |0.83|
+|128|	15.1| 	6.3 |0.84|
+|256|	12.2| 	6.7 |0.84|
