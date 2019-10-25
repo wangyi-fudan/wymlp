@@ -1,7 +1,22 @@
 # Real Time Intelligence for Every Machine
 Tiny fast portable on-the-fly deep neural network for regression and classification within 50 LOC.
 
-Example:
+Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0
+
+TSPS=Training Sample Per Second
+
+|HiddenUnits,Depth|float/TSPS|double/TSPS|autovectorization|
+|----|----|----|----|
+|4,16|	1,217,676| 	1,073,787 |scalar|
+|8,16|	408,811|	407,376 |scalar|
+|16,16|	110,779| 	101,579 |scalar
+|32,16|	**90,290**| 	67,730 |vectorized|
+|64,16|	29,815| 	18,876 |vectorized|
+|128,16|	8,906| 	4,334 |vectorized|
+|256,16|	2,029| 	1,089 |vectorized|
+
+Code Example:
+
 ```C++
 	wymlp<float,4,16,3,1,0>	model;	
 	model.ramdom(time(NULL));
@@ -10,6 +25,7 @@ Example:
 	model.model(x, y, -1);	//	predict
 	model.save("model");
 ```
+Comments:
 
 0:	task=0: regression; task=1: logistic;	task=2:	softmax
 
@@ -27,16 +43,4 @@ Example:
 	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
 ```
 
-Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0
 
-TSPS=Training Sample Per Second
-
-|HiddenUnits,Depth|float/TSPS|double/TSPS|autovectorization|
-|----|----|----|----|
-|4,16|	1,217,676| 	1,073,787 |scalar|
-|8,16|	408,811|	407,376 |scalar|
-|16,16|	110,779| 	101,579 |scalar
-|32,16|	**90,290**| 	67,730 |vectorized|
-|64,16|	29,815| 	18,876 |vectorized|
-|128,16|	8,906| 	4,334 |vectorized|
-|256,16|	2,029| 	1,089 |vectorized|
