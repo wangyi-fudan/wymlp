@@ -8,8 +8,7 @@ Example:
 	float	x[4]={1,2,3,5},	y[1]={2};
 	model.model(x, y, 0.1);	//	train
 	model.model(x, y, -1);	//	predict
-	model.save("model");
-```
+	model.save("model");```
 Comments:
 
 	0:	task=0: regression; task=1: logistic;	task=2:	softmax
@@ -23,7 +22,6 @@ Comments:
 	4:	The default and suggested model is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
   ```C++
 	#define	wymlp_size	((input+1)*hidden+(depth-1)*hidden*hidden+output*hidden)
-	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
-  ```
-  
+	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}```
+ 
 	5:	The code is portable, however, if O3 is used on X86, SSE or AVX or even AVX512 will enable very fast code!
