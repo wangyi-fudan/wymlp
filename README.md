@@ -29,7 +29,9 @@ Example:
 
 Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0
 
-|HiddenUnits,Depth|float/FPS|double/FPS|autovectorization|
+TSPS=Training Sample Per Second
+
+|HiddenUnits,Depth|float/TSPS|double/TSPS|autovectorization|
 |----|----|----|----|
 |4,16|	1,217,676| 	1,073,787 |scalar|
 |8,16|	408,811|	407,376 |scalar|
