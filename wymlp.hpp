@@ -20,24 +20,12 @@ public:
 	void	random(uint64_t	s) {	for(unsigned	i=0;	i<size();	i++)	weight[i]=wy2gau(wyrand(&s));	}
 	bool	save(const	char	*F) {
 		FILE	*f=fopen(F,	"wb");	if(f==NULL)	return	0;
-		unsigned	n;
-		n=input;	if(fwrite(&n,	sizeof(unsigned),	1,	f)!=1)	return	0;
-		n=hidden;	if(fwrite(&n,	sizeof(unsigned),	1,	f)!=1)	return	0;
-		n=layer;	if(fwrite(&n,	sizeof(unsigned),	1,	f)!=1)	return	0;
-		n=output;	if(fwrite(&n,	sizeof(unsigned),	1,	f)!=1)	return	0;
-		n=loss;		if(fwrite(&n,	sizeof(unsigned),	1,	f)!=1)	return	0;
 		if(fwrite(&drop,	sizeof(type),	1,	f)!=1)	return	0;
 		if(fwrite(weight,	size()*sizeof(type),	1,	f)!=1)	return	0;
 		fclose(f);	return	1;
 	}
 	bool	load(const	char	*F) {
 		FILE	*f=fopen(F,	"rb");	if(f==NULL)	return	0;
-		unsigned	n;
-		if(fread(&n,	sizeof(unsigned),	1,	f)!=1||n!=input)	return	0;
-		if(fread(&n,	sizeof(unsigned),	1,	f)!=1||n!=hidden)	return	0;
-		if(fread(&n,	sizeof(unsigned),	1,	f)!=1||n!=layer)	return	0;
-		if(fread(&n,	sizeof(unsigned),	1,	f)!=1||n!=output)	return	0;
-		if(fread(&n,	sizeof(unsigned),	1,	f)!=1||n!=loss)	return	0;
 		if(fread(&drop,	sizeof(type),	1,	f)!=1)	return	0;
 		if(fread(weight,	size()*sizeof(type),	1,	f)!=1)	return	0;
 		fclose(f);	return	1;
