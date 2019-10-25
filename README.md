@@ -38,3 +38,5 @@ Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0
 |64|	13.7| 	7.8 |0.83|
 |128|	15.1| 	6.3 |0.84|
 |256|	12.2| 	6.7 |0.84|
+
+Although GFLOPS is not large, the "FPS" can be very large for small network. It is OK for real time processing each WAV frame.
