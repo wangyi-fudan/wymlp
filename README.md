@@ -1,5 +1,5 @@
 # Simple is Best. Intelligence Everywhere!
-Tiny fast portable deep neural network for regression and classification within 60 LOC. Single thread is faster than multiple threads due to memory bound and CPU coherence.
+Tiny fast portable deep neural network for regression and classification within 60 LOC. It reaches 100k FPS trainning on X86 which is ideal for real time smart information processing.
 
 Example:
 ```C++
