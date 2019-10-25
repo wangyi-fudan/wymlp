@@ -67,6 +67,8 @@ public:
 	model.model(x,y,-1);	//	set eta<0 to predict x, and store to y
 	model.save("model");
 
+	In practice is OK to call model function parallelly with multi-threads.
+
 	The default and suggested model is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
 	#define	wymlp_size	((input+1)*hidden+(depth-1)*hidden*hidden+output*hidden)
 	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
