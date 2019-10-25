@@ -1,3 +1,4 @@
+//Author: Wang Yi <godspeed_china@yeah.net>
 #include	"wyhash.h"
 #include	<stdio.h>
 #include	<math.h>
@@ -58,7 +59,6 @@ public:
 	}
 };
 /*	
-	Author: Wang Yi <godspeed_china@yeah.net>
 	Example:
 	wymlp<float,4,16,3,1,0>	model;	//	task=0: regression; task=1: logistic;	task=2:	softmax
 	model.ramdom(time(NULL));
@@ -67,7 +67,7 @@ public:
 	model.model(x,y,-1);	//	set eta<0 to predict x, and store to y
 	model.save("model");
 
-	the default setting is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
+	The default and suggested model is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
 	#define	wymlp_size	((input+1)*hidden+(depth-1)*hidden*hidden+output*hidden)
 	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
 */
