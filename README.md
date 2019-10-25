@@ -1,4 +1,4 @@
-# Simple is Best
+# Simple is Best. Enable Intellegence Everywhere!
 Tiny fast portable deep neural network for regression and classification within 60 LOC. Single thread is faster than multiple threads due to memory bound and CPU coherence.
 
 Example:
