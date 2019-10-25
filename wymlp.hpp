@@ -1,4 +1,4 @@
-//Author: Wang Yi <godspeed_china@yeah.net>
+//Author: Wang Yi <godspeed_china@yeah.net>	Documents are at to bottom.
 #include	<stdlib.h>
 #include	<stdio.h>
 #include	<math.h>
