@@ -1,5 +1,5 @@
 # Simple is Best. Intelligence Everywhere!
-Tiny fast portable real time deep neural network for regression and classification within 50 LOC.
+Tiny fast portable on-the-fly deep neural network for regression and classification within 50 LOC.
 
 Example:
 ```C++
