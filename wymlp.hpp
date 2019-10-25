@@ -66,4 +66,8 @@ public:
 	model.model(x,y,0.1);	//	to learn x-y pair
 	model.model(x,y,-1);	//	set eta<0 to predict x, and store to y
 	model.save("model");
+
+	the default setting is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
+	#define	wymlp_size	((input+1)*hidden+(depth-1)*hidden*hidden+output*hidden)
+	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
 */
