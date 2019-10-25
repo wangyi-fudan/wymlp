@@ -1,5 +1,5 @@
 # Simple is Best
-tiny fast portable deep neural network for regression and classification within 60 LOC 
+Tiny fast portable deep neural network for regression and classification within 60 LOC. Single thread is faster than multiple threads due to memory bound and CPU coherence.
 
 Example:
 ```C++
