@@ -37,7 +37,7 @@ public:
 		case	0:	{	for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i];	else	o[i]-=y[i];	}	break;
 		case	1:	{	for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=1/(1+expf(-o[i]));	else	o[i]=1/(1+expf(-o[i]))-y[i];	}	break;
 		case	2:	{	for(unsigned	i=s=0;	i<output;	i++)	s+=(o[i]=i?expf(o[i]):1);	
-						for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i]/s;	else	o[i]=i?(o[i]/s-(i==(unsigned)y[0])):0;	}	break;
+								for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i]/s;	else	o[i]=i?(o[i]/s-(i==(unsigned)y[0])):0;	}	break;
 		}
 		if(eta<0) return;
 		for(unsigned	i=0;	i<output;	i++) {
