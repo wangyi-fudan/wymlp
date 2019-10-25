@@ -39,4 +39,4 @@ Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0
 |128|	15.1| 	6.3 |0.84|
 |256|	12.2| 	6.7 |0.84|
 
-Although GFLOPS is not large, the "FPS" can be very large for small network. It is OK for real time processing each WAV frame.
+Although GFLOPS is not large, the "FPS" (123081 for 32 hidden units and 31357 for 64 hidden units) can be very large for small network. It is OK for real time processing each WAV frame.
