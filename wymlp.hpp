@@ -74,7 +74,7 @@ Comments:
 
 	2:	The expected |X[i]|, |Y[i]| should be around 1. Normalize yor input and output first.
 
-	3:	In practice is OK to call model function parallelly with multi-threads.
+	3:	In practice is OK to call model function parallelly with multi-threads, however, they may be slower for small net.
 
 	4:	The default and suggested model is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
 	#define	wymlp_size	((input+1)*hidden+(depth-1)*hidden*hidden+output*hidden)
