@@ -26,4 +26,15 @@ Example:
 	#define	wymlp_size	((input+1)*hidden+(depth-1)*hidden*hidden+output*hidden)
 	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
 ```
- 
+
+Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread
+
+|HiddenUnits|	SinglePrecision/GFLOPS	|DoublePrecision/GFLOPS|
+|----|----|----|
+|4|	2.3| 	2.1 |
+|8|	3.0|	2.8 |
+|16|	3.3| 	3.1 |
+|32|	10.5| 	6.6 |
+|64|	13.7| 	7.8 |
+|128|	15.1| 	6.3 |
+|256|	12.2| 	6.7 |
