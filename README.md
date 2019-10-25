@@ -29,12 +29,12 @@ Example:
 
 Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0
 
-|HiddenUnits,Depth|float/FPS|double/FPS|
-|----|----|----|
-|4,16|	1,217,676| 	1,073,787 |
-|8,16|	408,811|	407,376 |
-|16,16|	109,905| 	101,579 |
-|32,16|	91,030| 	67,730 |
-|64,16|	29,815| 	18,876 |
-|128,16|	8,906| 	4,334 |
-|256,16|	2,029| 	1,089 |
+|HiddenUnits,Depth|float/FPS|double/FPS|autovectorization|
+|----|----|----|----|
+|4,16|	1,217,676| 	1,073,787 |scalar|
+|8,16|	408,811|	407,376 |scalar|
+|16,16|	109,905| 	101,579 |scalar
+|32,16|	91,030| 	67,730 |vectorized|
+|64,16|	29,815| 	18,876 |vectorized|
+|128,16|	8,906| 	4,334 |vectorized|
+|256,16|	2,029| 	1,089 |vectorized|
