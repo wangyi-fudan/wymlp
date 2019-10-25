@@ -17,7 +17,7 @@ Example:
 
 2:	The expected |X[i]|, |Y[i]| should be around 1. Normalize yor input and output first.
 
-3:	In practice is OK to call model function parallelly with multi-threads.
+3:	In practice, it is OK to call model function parallelly with multi-threads.
 
 4:	The code is portable, however, if O3 is used on X86, SSE or AVX or even AVX512 will enable very fast code!
 
