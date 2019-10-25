@@ -9,6 +9,7 @@ private:
 	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden;	}
 	type	weight[wymlp_size];
 public:
+	unsigned	flops(void){	return	2*((input+1)*hidden*2+((depth-1)*hidden*hidden+output*hidden)*3);	}
 	void	random(unsigned	s) {	srand(s);	for(unsigned	i=0;	i<wymlp_size;	i++)	weight[i]=3.0*rand()/RAND_MAX-1.5;	}
 	void	save(const	char	*F) {	FILE	*f=fopen(F,	"wb");	if(fwrite(weight,	wymlp_size*sizeof(type),	1,	f)!=1)	return;	fclose(f);	}
 	void	load(const	char	*F) {	FILE	*f=fopen(F,	"rb");	if(fread(weight,	wymlp_size*sizeof(type),	1,	f)!=1)	return;	fclose(f);	}
