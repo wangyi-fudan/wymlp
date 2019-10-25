@@ -31,7 +31,7 @@ public:
 		case	0:	{	for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i];	else	o[i]=(o[i]-y[i])*eta;	}	break;
 		case	1:	{	for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=1/(1+expf(-o[i]));	else	o[i]=(1/(1+expf(-o[i]))-y[i])*eta;	}	break;
 		case	2:	{	type	s=0;	for(unsigned	i=0;	i<output;	i++)	s+=(o[i]=i?expf(o[i]):1);	
-					for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i]/s;	else	o[i]=(i?(o[i]/s-(i==(unsigned)y[0])):0)*eta;	}	break;
+						for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i]/s;	else	o[i]=(i?(o[i]/s-(i==(unsigned)y[0])):0)*eta;	}	break;
 		}
 		if(eta<0) return;
 		for(unsigned	l=depth;	l;	l--) {
