@@ -1,5 +1,5 @@
 //Author: Wang Yi <godspeed_china@yeah.net>
-#include	"wyhash.h"
+#include	<stdlib.h>
 #include	<stdio.h>
 #include	<math.h>
 template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	loss>
@@ -9,7 +9,7 @@ private:
 	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden;	}
 	type	weight[wymlp_size];
 public:
-	void	random(uint64_t	s) {	for(unsigned	i=0;	i<wymlp_size;	i++)	weight[i]=wy2gau(wyrand(&s));	}
+	void	random(uint64_t	s) {	for(unsigned	i=0;	i<wymlp_size;	i++)	weight[i]=3.0*rand()/RAND_MAX-1.5;	}
 	void	save(const	char	*F) {	FILE	*f=fopen(F,	"wb");	if(fwrite(weight,	wymlp_size*sizeof(type),	1,	f)!=1)	return;	fclose(f);	}
 	void	load(const	char	*F) {	FILE	*f=fopen(F,	"rb");	if(fread(weight,	wymlp_size*sizeof(type),	1,	f)!=1)	return;	fclose(f);	}
 	void	model(type	*x,	type	*y,	type	eta) {
@@ -37,7 +37,7 @@ public:
 		case	0:	{	for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i];	else	o[i]-=y[i];	}	break;
 		case	1:	{	for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=1/(1+expf(-o[i]));	else	o[i]=1/(1+expf(-o[i]))-y[i];	}	break;
 		case	2:	{	for(unsigned	i=s=0;	i<output;	i++)	s+=(o[i]=i?expf(o[i]):1);	
-					for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i]/s;	else	o[i]=i?(o[i]/s-(i==(unsigned)y[0])):0;	}	break;
+						for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i]/s;	else	o[i]=i?(o[i]/s-(i==(unsigned)y[0])):0;	}	break;
 		}
 		if(eta<0) return;
 		for(unsigned	i=0;	i<output;	i++) {
