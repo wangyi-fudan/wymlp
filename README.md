@@ -1,4 +1,4 @@
-# Real Time Intelligence Everywhere!
+# Real Time Intelligence for Every Machine
 Tiny fast portable on-the-fly deep neural network for regression and classification within 50 LOC.
 
 Example:
