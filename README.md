@@ -1,4 +1,4 @@
-# Simple is Best. Intelligence Everywhere!
+# Real Time Intelligence Everywhere!
 Tiny fast portable on-the-fly deep neural network for regression and classification within 50 LOC.
 
 Example:
