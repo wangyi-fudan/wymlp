@@ -5,7 +5,7 @@
 template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	loss>
 class	wymlp {
 private:
-	#define	wymlp_size	(hidden*(input+1)+hidden*hidden+output*hidden)
+	#define	wymlp_size	((input+1)*hidden+hidden*hidden+output*hidden)
 	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden;	}
 	type	weight[wymlp_size];
 public:
