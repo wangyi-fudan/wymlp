@@ -29,14 +29,12 @@ Example:
 
 Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0
 
-|HiddenUnits|	float/GFLOPS	|double/GFLOPS|long double/GFLOPS|
-|----|----|----|----|
-|4|	2.3| 	2.1 |0.78|
-|8|	3.0|	2.8 |0.66|
-|16|	3.3| 	3.1 |0.71|
-|32|	10.5| 	6.6 |0.76|
-|64|	13.7| 	7.8 |0.83|
-|128|	15.1| 	6.3 |0.84|
-|256|	12.2| 	6.7 |0.84|
-
-Although GFLOPS is not large, the "FPS" (100,000) can be very large for small deep network(32 hidden units, 16 layers). It is OK for real time processing each WAV frame.
+|HiddenUnits,Depth|float/FPS|double/FPS|
+|----|----|----|
+|4,16|	1,217,676| 	1,073,787 |
+|8,16|	408,811|	407,376 |
+|16,16|	10,9905| 	101,579 |
+|32,16|	91,030| 	74,650 |
+|64,16|	29,815| 	18,876 |
+|128,16|	8,906| 	4,334 |
+|256,16|	2,029| 	1,089 |
