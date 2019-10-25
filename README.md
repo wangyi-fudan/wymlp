@@ -19,7 +19,7 @@ Example:
 
 3:	In practice, it is OK to call model function parallelly with multi-threads, however, they may be slower for small net.
 
-4:	The code is portable, however, if O3 is used on X86, autovectorization will make it even faster.
+4:	The code is portable, however, if -Ofast -march=native is used on X86, autovectorization will make it even faster.
 
 5:	The default and suggested model is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
 ```C++
