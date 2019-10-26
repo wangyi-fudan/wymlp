@@ -22,9 +22,11 @@ Code Example:
 int	main(void){
 	float	x[4]={1,2,3,5},	y[1]={2};
 	wymlp<float,4,32,16,1,0>	model;	
-	model.random(347834);
-	for(unsigned	i=0;	i<1000000;	i++){	x[0]++;	model.model(x, y, 0.1);	}
-	model.save("model");
+	for(size_t	i=0;	i<sizeof(model.weight)/sizeof(float);	i++)	model.weight[i]=3.0*rand()/RAND_MAX-1.5;	
+	for(unsigned	i=0;	i<1000000;	i++){	
+		x[0]+=0.01;	y[0]+=0.1;	//some "new" data
+		model.model(x, y, 0.1);	//	training. set eta<0 to predict
+	}
 	return	0;
 }
 ```
