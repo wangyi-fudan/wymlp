@@ -7,15 +7,15 @@ Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0
 
 Speed Measure:	Sample Per Second
 
-|HiddenUnits,Depth|autovectorization|float_training|float_inference|double_training|double_inference|
+|HiddenUnits,Depth|float_training|float_inference|double_training|double_inference|
 |----|----|----|----|----|----|
-|4,16|scalar|1,217,676||1,073,787 ||
-|8,16|scalar|408,811||407,376 ||
-|16,16|scalar|110,779||101,579 ||
-|32,16|vectorized|**90,290**||67,730 ||
-|64,16|vectorized|29,815||18,876 ||
-|128,16|vectorized|8,906||4,334 ||
-|256,16|vectorized|2,029||1,089 ||
+|4,16|1,217,676||1,073,787 ||
+|8,16|408,811||407,376 ||
+|16,16|110,779||101,579 ||
+|32,16|**90,290**||67,730 ||
+|64,16|29,815||18,876 ||
+|128,16|8,906||4,334 ||
+|256,16|2,029||1,089 ||
 
 Code Example:
 
