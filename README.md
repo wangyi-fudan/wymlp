@@ -18,7 +18,7 @@ Speed Measure:	Sample Per Second
 
 1 minute training on MNIST with 128H2L with single CPU thread.
 
-``
+```
 
 train-images-idx3-ubyte.gz
 
@@ -76,7 +76,7 @@ t10k-labels-idx1-ubyte.gz
 
 23	error=2.400%	eta=0.092	time=59.517s
 
-``
+```
 
 Code Example:
 
