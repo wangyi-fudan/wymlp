@@ -49,7 +49,7 @@ int	main(void){
 	type	weight[(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden];
 ```
 
-## MNIST 128H8L with single CPU thread.
+## MNIST 128H8L with single CPU thread:
 
 ```
 0	error=8.120%	eta=0.300	time=4.743s
