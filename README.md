@@ -1,19 +1,21 @@
 # Real-Time Intelligence for Every Machine
 Tiny fast portable real-time deep neural network for regression and classification within 50 LOC.
 
-Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0
+Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0 
 
-TSPS=Training Sample Per Second
+-Ofast -mavx2 -mfma
 
-|HiddenUnits,Depth|float/TSPS|double/TSPS|autovectorization|
-|----|----|----|----|
-|4,16|	1,217,676| 	1,073,787 |scalar|
-|8,16|	408,811|	407,376 |scalar|
-|16,16|	110,779| 	101,579 |scalar
-|32,16|	**90,290**| 	67,730 |vectorized|
-|64,16|	29,815| 	18,876 |vectorized|
-|128,16|	8,906| 	4,334 |vectorized|
-|256,16|	2,029| 	1,089 |vectorized|
+Speed Measure:	Sample Per Second
+
+|HiddenUnits,Depth|autovectorization|float_training|float_inference|double_training|double_inference|
+|----|----|----|----|----|----|
+|4,16|scalar|1,217,676||1,073,787 ||
+|8,16|scalar|408,811||407,376 ||
+|16,16|scalar|110,779||101,579 ||
+|32,16|vectorized|**90,290**||67,730 ||
+|64,16|vectorized|29,815||18,876 ||
+|128,16|vectorized|8,906||4,334 ||
+|256,16|vectorized|2,029||1,089 ||
 
 Code Example:
 
@@ -37,7 +39,7 @@ Comments:
 
 3:	In practice, it is OK to call model function parallelly with multi-threads, however, they may be slower for small net.
 
-4:	The code is portable, however, if -Ofast -march=native is used on X86, autovectorization will make it even faster.
+4:	The code is portable, however, if -Ofast is used on X86, autovectorization will make it even faster.
 
 5:	The default and suggested model is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
 ```C++
