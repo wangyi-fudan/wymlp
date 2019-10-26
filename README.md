@@ -51,6 +51,7 @@ Speed Measure:	Sample Per Second
 wymlp runs on my destop mentioned above while other benchmark comes from https://github.com/attractivechaos/kann which runs on Xeno E5-2697 CPUs at 2.7GHz. 64H1L setting.
 
 |Algorithm|time|
+|----|----|
 |wymlp(different machinine)|15.387s|
 |KANN+SSE|31.2s|
 |KANN+BLAS|18.8s|
