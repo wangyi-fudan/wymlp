@@ -46,6 +46,18 @@ Speed Measure:	Sample Per Second
 22	error=2.490%	eta=0.097	time=57.014s
 23	error=2.400%	eta=0.092	time=59.517s
 ```
+### Approximate Time Comparision
+
+wymlp runs on my destop mentioned above while other benchmark comes from https://github.com/attractivechaos/kann which runs on Xeno E5-2697 CPUs at 2.7GHz. 64H1L setting.
+
+|Algorithm|time|
+|wymlp(different machinine)|15.387s|
+|KANN+SSE|31.2s|
+|KANN+BLAS|18.8s|
+|Theano+Keras|33.2s|
+|TensorFlow|33.4s|
+|Tiny-dnn|2m18s|
+|Tiny-dnn+AVX|1m33s|
 
 ## Code Example:
 
