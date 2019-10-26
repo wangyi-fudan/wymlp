@@ -59,7 +59,7 @@ Comments:
 1: eta<0 lead to prediction only.
 2: The expected |X[i]|, |Y[i]| should be around 1. Normalize yor input and output first.
 3: In practice, it is OK to call model function parallelly with multi-threads, however, they may be slower for small net.
-4: The code is portable, however, if O3 is used on X86, SSE or AVX or even AVX512 will enable very fast code!
+4: The code is portable, however, if Ofast is used on X86, SSE or AVX or even AVX512 will enable very fast code!
 5: The default and suggested model is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
 	#define	woff(i,l)	(l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden)
 	type	weight[(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden];
