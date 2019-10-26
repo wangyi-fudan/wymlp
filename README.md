@@ -16,37 +16,65 @@ Speed Measure:	Sample Per Second
 |256H16L|2,176|4,388|1,155|2,369|
 |512H16L|585|1,201|292|614|
 
-1 minute training on MNIST with 128H2L
+1 minute training on MNIST with 128H2L with single CPU thread.
 
 `
 train-images-idx3-ubyte.gz
+
 t10k-images-idx3-ubyte.gz
+
 train-labels-idx1-ubyte.gz
+
 t10k-labels-idx1-ubyte.gz
+
 0	error=6.800%	eta=0.300	time=2.374s
+
 1	error=5.010%	eta=0.285	time=4.825s
+
 2	error=4.180%	eta=0.271	time=7.290s
+
 3	error=3.660%	eta=0.257	time=9.754s
+
 4	error=3.430%	eta=0.244	time=12.261s
+
 5	error=3.080%	eta=0.232	time=14.826s
+
 6	error=3.070%	eta=0.221	time=17.355s
+
 7	error=2.830%	eta=0.210	time=19.823s
+
 8	error=2.900%	eta=0.199	time=22.259s
+
 9	error=2.790%	eta=0.189	time=24.711s
+
 10	error=2.620%	eta=0.180	time=27.206s
+
 11	error=2.590%	eta=0.171	time=29.719s
+
 12	error=2.650%	eta=0.162	time=32.191s
+
 13	error=2.560%	eta=0.154	time=34.684s
+
 14	error=2.580%	eta=0.146	time=37.195s
+
 15	error=2.430%	eta=0.139	time=39.693s
+
 16	error=2.400%	eta=0.132	time=42.149s
+
 17	error=2.440%	eta=0.125	time=44.605s
+
 18	error=2.490%	eta=0.119	time=47.115s
+
 19	error=2.440%	eta=0.113	time=49.581s
+
 20	error=2.400%	eta=0.108	time=52.075s
+
 21	error=2.400%	eta=0.102	time=54.539s
+
 22	error=2.490%	eta=0.097	time=57.014s
+
 23	error=2.400%	eta=0.092	time=59.517s
+
 `
 
 Code Example:
