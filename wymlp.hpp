@@ -1,11 +1,12 @@
+#include	"wyhash.h"
 #include	<math.h>
 template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	loss>
 struct	wymlp {
 	#define	woff(i,l)	(l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden)
 	type	weight[(input+1)*hidden+hidden*hidden+output*hidden];
-	void	model(type	*x,	type	*y,	type	eta) {
-		type	a[2*depth*hidden+output]= {},	*d=a+depth*hidden,	*o=a+2*depth*hidden,	wh=1/sqrtf(hidden),	wi=1/sqrtf(input+1);
-		for(unsigned  i=0;  i<=input; i++) {
+	void	model(type	*x,	type	*y,	type	eta,	double	dropout,	uint64_t	seed) {
+		type	a[2*depth*hidden+output]= {},	*d=a+depth*hidden,	*o=a+2*depth*hidden,	wh=1/sqrtf(hidden),	wi=(1-(eta<0)*dropout)/sqrtf(input+1);	uint64_t	drop=dropout*~0ull;
+		for(unsigned  i=0;  i<=input; i++) if(eta<0||wyhash64(i,seed)>=drop){
 			type	*w=weight+woff(i,0),	s=i==input?1:x[i];	if(s==0)	continue;
 			for(unsigned	j=0;	j<hidden;	j++)	a[j]+=s*w[j];
 		}
@@ -33,7 +34,7 @@ struct	wymlp {
 			}
 		}
 		for(unsigned	i=0;	i<hidden;	i++) {	type	s=a[i];	d[i]*=(s>0?(1-s)*(1-s):(1+s)*(1+s))*wi;	}
-		for(unsigned  i=0;  i<=input; i++)	{
+		for(unsigned  i=0;  i<=input; i++)	if(eta<0||wyhash64(i,seed)>=drop){
 			type	*w=weight+woff(i,0),	s=(i==input?1:x[i]);	if(s==0)	continue;
 			for(unsigned	j=0;	j<hidden;	j++)	w[j]-=s*d[j];
 		}
@@ -49,7 +50,7 @@ int	main(void){
 	for(size_t	i=0;	i<sizeof(model.weight)/sizeof(float);	i++)	model.weight[i]=3.0*rand()/RAND_MAX-1.5;	
 	for(unsigned	i=0;	i<1000000;	i++){	
 		x[0]+=0.01;	y[0]+=0.1;	//some "new" data
-		model.model(x, y, 0.1);	//	training. set eta<0 to predict
+		model.model(x, y, 0.1,	0.5,	wygrand());	//	training. set eta<0 to predict
 	}
 	return	0;
 }
