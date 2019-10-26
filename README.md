@@ -18,12 +18,14 @@ TSPS=Training Sample Per Second
 Code Example:
 
 ```C++
-	wymlp<float,4,16,3,1,0>	model;	
-	model.ramdom(time(NULL));
+int	main(void){
 	float	x[4]={1,2,3,5},	y[1]={2};
-	model.model(x, y, 0.1);	//	train
-	model.model(x, y, -1);	//	predict
+	wymlp<float,4,32,16,1,0>	model;	
+	model.random(347834);
+	for(unsigned	i=0;	i<1000000;	i++){	x[0]++;	model.model(x, y, 0.1);	}
 	model.save("model");
+	return	0;
+}
 ```
 Comments:
 
