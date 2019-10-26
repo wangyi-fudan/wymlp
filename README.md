@@ -19,6 +19,7 @@ Speed Measure:	Sample Per Second
 1 minute training on MNIST with 128H2L with single CPU thread.
 
 `
+
 train-images-idx3-ubyte.gz
 
 t10k-images-idx3-ubyte.gz
