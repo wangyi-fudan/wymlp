@@ -18,33 +18,56 @@ Speed Measure:	Sample Per Second
 |512H16L|585|1,201|292|614|
 
 ## MNIST
-1 minute training on MNIST with 128H2L with single CPU thread.
+1 minute training on MNIST with 64H3L with single CPU thread.
 
 ```
-0	error=6.800%	eta=0.300	time=2.374s
-1	error=5.010%	eta=0.285	time=4.825s
-2	error=4.180%	eta=0.271	time=7.290s
-3	error=3.660%	eta=0.257	time=9.754s
-4	error=3.430%	eta=0.244	time=12.261s
-5	error=3.080%	eta=0.232	time=14.826s
-6	error=3.070%	eta=0.221	time=17.355s
-7	error=2.830%	eta=0.210	time=19.823s
-8	error=2.900%	eta=0.199	time=22.259s
-9	error=2.790%	eta=0.189	time=24.711s
-10	error=2.620%	eta=0.180	time=27.206s
-11	error=2.590%	eta=0.171	time=29.719s
-12	error=2.650%	eta=0.162	time=32.191s
-13	error=2.560%	eta=0.154	time=34.684s
-14	error=2.580%	eta=0.146	time=37.195s
-15	error=2.430%	eta=0.139	time=39.693s
-16	error=2.400%	eta=0.132	time=42.149s
-17	error=2.440%	eta=0.125	time=44.605s
-18	error=2.490%	eta=0.119	time=47.115s
-19	error=2.440%	eta=0.113	time=49.581s
-20	error=2.400%	eta=0.108	time=52.075s
-21	error=2.400%	eta=0.102	time=54.539s
-22	error=2.490%	eta=0.097	time=57.014s
-23	error=2.400%	eta=0.092	time=59.517s
+0	error=8.000%	eta=0.300	time=1.260s
+1	error=5.920%	eta=0.285	time=2.537s
+2	error=4.920%	eta=0.271	time=3.813s
+3	error=4.160%	eta=0.257	time=5.078s
+4	error=3.970%	eta=0.244	time=6.343s
+5	error=3.480%	eta=0.232	time=7.603s
+6	error=3.170%	eta=0.221	time=8.875s
+7	error=3.080%	eta=0.210	time=10.138s
+8	error=3.090%	eta=0.199	time=11.411s
+9	error=3.160%	eta=0.189	time=12.684s
+10	error=3.100%	eta=0.180	time=13.950s
+11	error=2.780%	eta=0.171	time=15.215s
+12	error=3.030%	eta=0.162	time=16.483s
+13	error=2.710%	eta=0.154	time=17.766s
+14	error=2.970%	eta=0.146	time=19.037s
+15	error=2.920%	eta=0.139	time=20.298s
+16	error=2.560%	eta=0.132	time=21.571s
+17	error=2.530%	eta=0.125	time=22.842s
+18	error=2.610%	eta=0.119	time=24.108s
+19	error=2.530%	eta=0.113	time=25.381s
+20	error=2.700%	eta=0.108	time=26.650s
+21	error=2.550%	eta=0.102	time=27.917s
+22	error=2.510%	eta=0.097	time=29.177s
+23	error=2.340%	eta=0.092	time=30.445s
+24	error=2.460%	eta=0.088	time=31.715s
+25	error=2.390%	eta=0.083	time=32.968s
+26	error=2.380%	eta=0.079	time=34.229s
+27	error=2.310%	eta=0.075	time=35.509s
+28	error=2.370%	eta=0.071	time=36.794s
+29	error=2.560%	eta=0.068	time=38.071s
+30	error=2.390%	eta=0.064	time=39.375s
+31	error=2.460%	eta=0.061	time=40.652s
+32	error=2.330%	eta=0.058	time=41.931s
+33	error=2.270%	eta=0.055	time=43.197s
+34	error=2.270%	eta=0.052	time=44.477s
+35	error=2.380%	eta=0.050	time=45.745s
+36	error=2.290%	eta=0.047	time=47.026s
+37	error=2.220%	eta=0.045	time=48.300s
+38	error=2.290%	eta=0.043	time=49.579s
+39	error=2.210%	eta=0.041	time=50.857s
+40	error=2.240%	eta=0.039	time=52.128s
+41	error=2.180%	eta=0.037	time=53.415s
+42	error=2.260%	eta=0.035	time=54.681s
+43	error=2.290%	eta=0.033	time=55.955s
+44	error=2.180%	eta=0.031	time=57.225s
+45	error=2.210%	eta=0.030	time=58.498s
+46	error=2.130%	eta=0.028	time=59.769s
 ```
 ### Approximate Time Comparision
 
@@ -69,7 +92,7 @@ int	main(void){
 	for(size_t	i=0;	i<sizeof(model.weight)/sizeof(float);	i++)	model.weight[i]=3.0*rand()/RAND_MAX-1.5;	
 	for(unsigned	i=0;	i<1000000;	i++){	
 		x[0]+=0.01;	y[0]+=0.1;	//some "new" data
-		model.model(x, y, 0.1);	//	training. set eta<0 to predict
+		model.model(x, y, 0.1,	0.5,	wygrand());	//	training. set eta<0 to predict
 	}
 	return	0;
 }
