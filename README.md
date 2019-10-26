@@ -1,7 +1,7 @@
 # Real-Time Intelligence for Every Machine
 Tiny fast portable real-time deep neural network for regression and classification with 40 LOC.
 
-##Benchmark
+## Benchmark
 Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz Single Thread @ VirtualBox 6.0 
 
 -Ofast -mavx2 -mfma
@@ -17,7 +17,7 @@ Speed Measure:	Sample Per Second
 |256H16L|2,176|4,388|1,155|2,369|
 |512H16L|585|1,201|292|614|
 
-##MNIST
+## MNIST
 1 minute training on MNIST with 128H2L with single CPU thread.
 
 ```
@@ -47,7 +47,7 @@ Speed Measure:	Sample Per Second
 23	error=2.400%	eta=0.092	time=59.517s
 ```
 
-##Code Example:
+## Code Example:
 
 ```C++
 int	main(void){
@@ -61,7 +61,7 @@ int	main(void){
 	return	0;
 }
 ```
-##Comments:
+## Comments:
 
 0: task=0: regression; task=1: logistic; task=2: softmax
 
