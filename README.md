@@ -9,7 +9,7 @@ Speed Measure:	Sample Per Second
 
 |Hidden&Depth|float_training|float_inference|double_training|double_inference|
 |----|----|----|----|----|
-|16H16(scalar)|116,849|270,809|109,944|242,912|
+|16H16L(scalar)|116,849|270,809|109,944|242,912|
 |32H16L|**112,504**|197,349|70,236 |142,807|
 |64H16L|32,042|58,697|21,635|45,111|
 |128H16L|8,715|15,812|4,428|8,904|
