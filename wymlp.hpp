@@ -1,17 +1,8 @@
-//Author: Wang Yi <godspeed_china@yeah.net>	Documents are at to bottom.
-#include	<stdlib.h>
-#include	<stdio.h>
 #include	<math.h>
 template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	loss>
-class	wymlp {
-private:
-	#define	wymlp_size	((input+1)*hidden+hidden*hidden+output*hidden)
-	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden;	}
-	type	weight[wymlp_size];
-public:
-	void	random(unsigned	s) {	srand(s);	for(unsigned	i=0;	i<wymlp_size;	i++)	weight[i]=3.0*rand()/RAND_MAX-1.5;	}
-	void	save(const	char	*F) {	FILE	*f=fopen(F,	"wb");	if(fwrite(weight,	wymlp_size*sizeof(type),	1,	f)!=1)	return;	fclose(f);	}
-	void	load(const	char	*F) {	FILE	*f=fopen(F,	"rb");	if(fread(weight,	wymlp_size*sizeof(type),	1,	f)!=1)	return;	fclose(f);	}
+struct	wymlp {
+	#define	woff(i,l)	(l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden)
+	type	weight[(input+1)*hidden+hidden*hidden+output*hidden];
 	void	model(type	*x,	type	*y,	type	eta) {
 		type	a[2*depth*hidden+output]= {},	*d=a+depth*hidden,	*o=a+2*depth*hidden,	wh=1/sqrtf(hidden),	wi=1/sqrtf(input+1);
 		for(unsigned  i=0;  i<=input; i++) {
@@ -49,13 +40,17 @@ public:
 	}
 };
 /*
+Author: Wang Yi <godspeed_china@yeah.net>
+
 Example:
 int	main(void){
 	float	x[4]={1,2,3,5},	y[1]={2};
 	wymlp<float,4,32,16,1,0>	model;	
-	model.random(347834);
-	for(unsigned	i=0;	i<1000000;	i++){	x[0]++;	model.model(x, y, 0.1);	}
-	model.save("model");
+	for(size_t	i=0;	i<sizeof(model.weight)/sizeof(float);	i++)	model.weight[i]=3.0*rand()/RAND_MAX-1.5;	
+	for(unsigned	i=0;	i<1000000;	i++){	
+		x[0]+=0.01;	y[0]+=0.1;	//some "new" data
+		model.model(x, y, 0.1);	//	training. set eta<0 to predict
+	}
 	return	0;
 }
 
@@ -66,6 +61,6 @@ Comments:
 3: In practice, it is OK to call model function parallelly with multi-threads, however, they may be slower for small net.
 4: The code is portable, however, if O3 is used on X86, SSE or AVX or even AVX512 will enable very fast code!
 5: The default and suggested model is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
-	#define	wymlp_size	((input+1)*hidden+(depth-1)*hidden*hidden+output*hidden)
-	unsigned	woff(unsigned	i,	unsigned	l) {	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
+	#define	woff(i,l)	(l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden)
+	type	weight[(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden];
 */
