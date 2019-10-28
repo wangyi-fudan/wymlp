@@ -4,8 +4,8 @@ template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	o
 struct	wymlp {
 	#define	woff(i,l)	(l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden)
 	type	weight[(input+1)*hidden+hidden*hidden+output*hidden];
-	type	act(type	x){	return	x/(1+(((x>0)<<1)-1)*x);	}
-	type	gra(type	x){	type	y=1-(((x>0)<<1)-1)*x;	return	y*y;	}
+	type	act(type	x){	return	x/(1+(((int)(x>0)<<1)-1)*x);	}
+	type	gra(type	x){	type	y=1-(((int)(x>0)<<1)-1)*x;	return	y*y;	}
 	void	model(type	*x,	type	*y,	type	eta,	double	dropout,	uint64_t	seed) {
 		type	a[2*depth*hidden+output]= {},	*d=a+depth*hidden,	*o=a+2*depth*hidden,	wh=1/sqrtf(hidden),	wi=(1-(eta<0)*dropout)/sqrtf(input+1);	uint64_t	drop=dropout*~0ull;
 		for(unsigned  i=0;  i<=input; i++) if(eta<0||wyhash64(i,seed)>=drop){
