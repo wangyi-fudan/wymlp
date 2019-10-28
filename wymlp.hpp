@@ -2,8 +2,8 @@
 #include	<math.h>
 template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	loss>
 struct	wymlp {
-	#define	woff(i,l)	(l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden)
 	type	weight[(input+1)*hidden+hidden*hidden+output*hidden];
+	unsigned	woff(unsigned	i,	unsigned	l){	return	l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden;	}
 	type	act(type	x){	return	x/(1+(((int)(x>0)<<1)-1)*x);	}
 	type	gra(type	x){	type	y=1-(((int)(x>0)<<1)-1)*x;	return	y*y;	}
 	void	model(type	*x,	type	*y,	type	eta,	double	dropout,	uint64_t	seed) {
@@ -64,6 +64,6 @@ Comments:
 3: In practice, it is OK to call model function parallelly with multi-threads, however, they may be slower for small net.
 4: The code is portable, however, if Ofast is used on X86, SSE or AVX or even AVX512 will enable very fast code!
 5: The default and suggested model is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
-	#define	woff(i,l)	(l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden)
 	type	weight[(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden];
+	unsigned	woff(unsigned	i,	unsigned	l){	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
 */
