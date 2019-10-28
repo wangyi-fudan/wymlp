@@ -45,8 +45,8 @@ int	main(void){
 
 5: The default and suggested model is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
 ```C++
-	#define	woff(i,l)	(l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden)
 	type	weight[(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden];
+	unsigned	woff(unsigned	i,	unsigned	l){	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
 ```
 
 ## MNIST test error of 128H2L with single CPU thread:
