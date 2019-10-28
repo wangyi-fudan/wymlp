@@ -4,19 +4,21 @@ template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	o
 struct	wymlp {
 	#define	woff(i,l)	(l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden)
 	type	weight[(input+1)*hidden+hidden*hidden+output*hidden];
+	type	act(type	x){	return	x/(1+(((x>0)<<1)-1)*x);	}
+	type	gra(type	x){	type	y=1-(((x>0)<<1)-1)*x;	return	y*y;	}
 	void	model(type	*x,	type	*y,	type	eta,	double	dropout,	uint64_t	seed) {
 		type	a[2*depth*hidden+output]= {},	*d=a+depth*hidden,	*o=a+2*depth*hidden,	wh=1/sqrtf(hidden),	wi=(1-(eta<0)*dropout)/sqrtf(input+1);	uint64_t	drop=dropout*~0ull;
 		for(unsigned  i=0;  i<=input; i++) if(eta<0||wyhash64(i,seed)>=drop){
 			type	*w=weight+woff(i,0),	s=i==input?1:x[i];	if(s==0)	continue;
 			for(unsigned	j=0;	j<hidden;	j++)	a[j]+=s*w[j];
 		}
-		for(unsigned	i=0;	i<hidden;	i++) {	type	s=wi*a[i];	a[i]=i?(s>0?s/(1+s):s/(1-s)):1;	}
+		for(unsigned	i=0;	i<hidden;	i++) a[i]=i?act(wi*a[i]):1;
 		for(unsigned	l=1;	l<=depth;	l++) {
 			type	*p=a+(l-1)*hidden,	*q=(l==depth?o:a+l*hidden);
 			for(unsigned	i=0;	i<(l==depth?output:hidden);	i++) {
 				type	*w=weight+woff(i,l),	s=0;
 				for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*p[j];
-				s*=wh;	q[i]=(l==depth?s:(i?(s>0?s/(1+s):s/(1-s)):1));
+				q[i]=(l==depth?s*wh:(i?act(s*wh):1));
 			}
 		}
 		switch(loss) {
@@ -29,11 +31,11 @@ struct	wymlp {
 		for(unsigned	l=depth;	l;	l--) {
 			type	*p=a+(l-1)*hidden,	*q=(l==depth?o:a+l*hidden),	*g=d+(l-1)*hidden,	*h=(l==depth?o:d+l*hidden);
 			for(unsigned	i=0;	i<(l==depth?output:hidden);	i++) {
-				type	*w=weight+woff(i,l),	s=q[i];	s=(l==depth?s:h[i]*(s>0?(1-s)*(1-s):(1+s)*(1+s)))*wh;
+				type	*w=weight+woff(i,l),	s=(l==depth?q[i]:h[i]*gra(q[i]))*wh;
 				for(unsigned  j=0;  j<hidden; j++) {	g[j]+=s*w[j];	w[j]-=s*p[j];	}
 			}
 		}
-		for(unsigned	i=0;	i<hidden;	i++) {	type	s=a[i];	d[i]*=(s>0?(1-s)*(1-s):(1+s)*(1+s))*wi;	}
+		for(unsigned	i=0;	i<hidden;	i++) d[i]*=gra(a[i])*wi;
 		for(unsigned  i=0;  i<=input; i++)	if(eta<0||wyhash64(i,seed)>=drop){
 			type	*w=weight+woff(i,0),	s=(i==input?1:x[i]);	if(s==0)	continue;
 			for(unsigned	j=0;	j<hidden;	j++)	w[j]-=s*d[j];
