@@ -11,8 +11,7 @@ unsigned	wymlp(type	*weight,	type	*x,	type	*y,	type	eta,	uint64_t	seed,	double	d
 #endif
 #define	act(x)	(x/(1+(((int)(x>0)<<1)-1)*x))
 #define	gra(x)	((1-(((int)(x>0)<<1)-1)*x)*(1-(((int)(x>0)<<1)-1)*x))
-	type	a[2*depth*hidden+output]= {},	*d=a+depth*hidden,	*o=a+2*depth*hidden,	wh=1/sqrtf(hidden),	wi=(1-(eta<0)*dropout)/sqrtf(input+1);
-	uint64_t	drop=dropout*~0ull;
+	type	a[2*depth*hidden+output]= {},	*d=a+depth*hidden,	*o=a+2*depth*hidden,	wh=1/sqrtf(hidden),	wi=(1-(eta<0)*dropout)/sqrtf(input+1);	uint64_t	drop=dropout*~0ull;
 	for(unsigned  i=0;  i<=input; i++) if(eta<0||wyhash64(i,seed)>=drop) {
 		type	*w=weight+woff(i,0),	s=i==input?1:x[i];	if(s==0)	continue;
 		for(unsigned	j=0;	j<hidden;	j++)	a[j]+=s*w[j];
