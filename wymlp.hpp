@@ -2,11 +2,12 @@
 #include	<math.h>
 template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	loss>
 struct	wymlp {
-	type	weight[(input+1)*hidden+hidden*hidden+output*hidden];
-	unsigned	woff(unsigned	i,	unsigned	l){	return	l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden;	}
-	type	act(type	x){	return	x/(1+(((int)(x>0)<<1)-1)*x);	}
-	type	gra(type	x){	type	y=1-(((int)(x>0)<<1)-1)*x;	return	y*y;	}
+	type	*weight;	//	allocate weight with size() by yourself. mmap is possible in the case of inference only.
+	unsigned	size(void){	return	(input+1)*hidden+hidden*hidden+output*hidden;	}
 	void	model(type	*x,	type	*y,	type	eta,	double	dropout,	uint64_t	seed) {
+		#define	woff(i,l)	(l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden)
+		#define	act(x)	(x/(1+(((int)(x>0)<<1)-1)*x))
+		#define	gra(x)	((1-(((int)(x>0)<<1)-1)*x)*(1-(((int)(x>0)<<1)-1)*x))
 		type	a[2*depth*hidden+output]= {},	*d=a+depth*hidden,	*o=a+2*depth*hidden,	wh=1/sqrtf(hidden),	wi=(1-(eta<0)*dropout)/sqrtf(input+1);	uint64_t	drop=dropout*~0ull;
 		for(unsigned  i=0;  i<=input; i++) if(eta<0||wyhash64(i,seed)>=drop){
 			type	*w=weight+woff(i,0),	s=i==input?1:x[i];	if(s==0)	continue;
@@ -49,11 +50,13 @@ Example:
 int	main(void){
 	float	x[4]={1,2,3,5},	y[1]={2};
 	wymlp<float,4,32,16,1,0>	model;	
-	for(size_t	i=0;	i<sizeof(model.weight)/sizeof(float);	i++)	model.weight[i]=3.0*rand()/RAND_MAX-1.5;	
+	model.weight=new	float[model.size()];
+	for(size_t	i=0;	i<model.size();	i++)	model.weight[i]=3.0*rand()/RAND_MAX-1.5;	
 	for(unsigned	i=0;	i<1000000;	i++){	
 		x[0]+=0.01;	y[0]+=0.1;	//some "new" data
 		model.model(x, y, 0.1,	0.5,	wygrand());	//	training. set eta<0 to predict
 	}
+	delete	[]	model.weight;
 	return	0;
 }
 
