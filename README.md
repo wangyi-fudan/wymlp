@@ -22,32 +22,32 @@ Speed Measure:	Sample Per Second
 ```C++
 int	main(void){
 	float	x[4]={1,2,3,5},	y[1]={2};
-	wymlp<float,4,32,16,1,0>	model;	
-	for(size_t	i=0;	i<sizeof(model.weight)/sizeof(float);	i++)	model.weight[i]=3.0*rand()/RAND_MAX-1.5;	
+	vector<float>	weight(wymlp<float,12,32,4,1,0>(NULL,NULL,NULL,0,0,-1));	//set dropout<0 to return size
+	for(size_t	i=0;	i<weight.size();	i++)	model.weight[i]=3.0*rand()/RAND_MAX-1.5;	
 	for(unsigned	i=0;	i<1000000;	i++){	
 		x[0]+=0.01;	y[0]+=0.1;	//some "new" data
-		model.model(x, y, 0.1,	0.5,	wygrand());	//	training. set eta<0 to predict
+		wymlp<float,12,32,4,1,0>(weight.data(),	x, y, 0.1,	wygrand(),	0.5);	//	training. set eta>0 to train
+		wymlp<float,12,32,4,1,0>(weight.data(),	x, y, -1,	wygrand(),	0.5);	//	training. set eta<0 to predict
 	}
 	return	0;
 }
 ```
-## Comments:
+Comments:
 
 0: loss=0: regression; loss=1: logistic; loss=2: softmax
 
-1: eta<0 lead to prediction only.
+1: dropout<0 lead to size() function
 
-2: The expected |X[i]|, |Y[i]| should be around 1. Normalize yor input and output first.
+2: eta<0 lead to prediction only.
 
-3: In practice, it is OK to call model function parallelly with multi-threads, however, they may be slower for small net.
+3: The expected |X[i]|, |Y[i]| should be around 1. Normalize yor input and output first.
 
-4: The code is portable, however, if Ofast is used on X86, SSE or AVX or even AVX512 will enable very fast code!
+4: In practice, it is OK to call model function parallelly with multi-threads, however, they may be slower for small net.
 
-5: The default and suggested model is shared hidden-hidden weights. If you want conventional MLP, please replace it with the following lines:
-```C++
-	type	weight[(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden];
-	unsigned	woff(unsigned	i,	unsigned	l){	return	l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden;	}
-```
+5: The code is portable, however, if Ofast is used on X86, SSE or AVX or even AVX512 will enable very fast code!
+
+6: The default and suggested model is shared hidden-hidden weights. If you want vanilla MLP, define VanillaMLP
+
 
 ## MNIST test error of 128H2L with single CPU thread:
 
