@@ -33,7 +33,7 @@ int	main(void){
 ```
 ## Comments:
 
-0: task=0: regression; task=1: logistic; task=2: softmax
+0: loss=0: regression; loss=1: logistic; loss=2: softmax
 
 1: eta<0 lead to prediction only.
 
