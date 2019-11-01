@@ -22,7 +22,7 @@ Speed Measure:	Sample Per Second
 ```C++
 int	main(void){
 	float	x[4]={1,2,3,5},	y[1]={2};
-	vector<float>	weight(wymlp<float,12,32,4,1,0>(NULL,NULL,NULL,0,0,-1));	//set dropout<0 to return size
+	vector<float>	weight(wymlp<float,12,32,4,1,0>(NULL,NULL,NULL,0,0,0));	//set weight==NULL to return size
 	for(size_t	i=0;	i<weight.size();	i++)	weight[i]=3.0*rand()/RAND_MAX-1.5;	
 	for(unsigned	i=0;	i<1000000;	i++){	
 		x[0]+=0.01;	y[0]+=0.1;	//some "new" data
