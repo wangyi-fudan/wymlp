@@ -27,7 +27,7 @@ int	main(void){
 	for(unsigned	i=0;	i<1000000;	i++){	
 		x[0]+=0.01;	y[0]+=0.1;	//some "new" data
 		wymlp<float,12,32,4,1,0>(weight.data(),	x, y, 0.1,	wygrand(),	0.5);	//	training. set eta>0 to train
-		wymlp<float,12,32,4,1,0>(weight.data(),	x, y, -1,	wygrand(),	0.5);	//	training. set eta<0 to predict
+		wymlp<float,12,32,4,1,0>(weight.data(),	x, y, -1,	wygrand(),	0.5);	//	prediction. set eta<0 to predict
 	}
 	return	0;
 }
