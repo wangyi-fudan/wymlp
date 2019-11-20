@@ -4,38 +4,40 @@ template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	o
 unsigned	wymlp(type	*weight,	type	*x,	type	*y,	type	eta,	uint64_t	seed,	double	dropout) {
 	if(weight==NULL)	return	(input+1)*hidden+hidden*hidden+output*hidden;
 	#define	woff(i,l)	(l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden)
-	#define	act(x)	(x/(1+(((int)(x>0)<<1)-1)*x))
-	#define	gra(x)	((1-(((int)(x>0)<<1)-1)*x)*(1-(((int)(x>0)<<1)-1)*x))
+	#define	wymlp_act(x)	(x/(1+(((int)(x>0)<<1)-1)*x))
+	#define	wymlp_gra(x)	((1-(((int)(x>0)<<1)-1)*x)*(1-(((int)(x>0)<<1)-1)*x))
 	type	a[2*depth*hidden+output]= {},	*d=a+depth*hidden,	*o=a+2*depth*hidden,	wh=1/sqrtf(hidden),	wi=(1-(eta<0)*dropout)/sqrtf(input+1);	uint64_t	drop=dropout*~0ull;
 	for(unsigned  i=0;  i<=input; i++)	{
 		type	*w=weight+woff(i,0),	s=(i==input?1:x[i])*(eta<0||wyhash64(i,seed)>=drop);
 		for(unsigned	j=0;	j<hidden;	j++)	a[j]+=s*w[j];
 	}
-	for(unsigned	i=0;	i<hidden;	i++) a[i]=i?act(wi*a[i]):1;
+	for(unsigned	i=0;	i<hidden;	i++) a[i]=i?wymlp_act(wi*a[i]):1;
 	for(unsigned	l=1;	l<=depth;	l++) {
 		type	*p=a+(l-1)*hidden,	*q=(l==depth?o:a+l*hidden);
 		for(unsigned	i=0;	i<(l==depth?output:hidden);	i++) {
 			type	*w=weight+woff(i,l),	s=0;
 			for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*p[j];
-			q[i]=(l==depth?s*wh:(i?act(s*wh):1));
+			q[i]=(l==depth?s*wh:(i?wymlp_act(s*wh):1));
 		}
 	}
 	switch(task) {
 	case	0:	{	for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i];	else	o[i]=(o[i]-y[i])*eta;	}	break;
 	case	1:	{	for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=1/(1+expf(-o[i]));	else	o[i]=(1/(1+expf(-o[i]))-y[i])*eta;	}	break;
-	case	2:	{	type	s=0;	for(unsigned	i=0;	i<output;	i++)	s+=(o[i]=i?expf(o[i]):1);
-		for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i]/s;	else	o[i]=(i?(o[i]/s-(i==(unsigned)y[0])):0)*eta;
+	case	2:	{	type	m=o[0],	s=0;	
+			for(unsigned	i=1;	i<output;	i++)	if(o[i]>m)	m=o[i];
+			for(unsigned	i=0;	i<output;	i++)	s+=(o[i]=expf(o[i]-m));
+			for(unsigned	i=0;	i<output;	i++)	if(eta<0)	y[i]=o[i]/s;	else	o[i]=(o[i]/s-(i==(unsigned)y[0]))*eta;
 		}	break;
 	}
 	if(eta<0) return	0;
 	for(unsigned	l=depth;	l;	l--) {
 		type	*p=a+(l-1)*hidden,	*q=(l==depth?o:a+l*hidden),	*g=d+(l-1)*hidden,	*h=(l==depth?o:d+l*hidden);
 		for(unsigned	i=0;	i<(l==depth?output:hidden);	i++) {
-			type	*w=weight+woff(i,l),	s=(l==depth?q[i]:h[i]*gra(q[i]))*wh;
+			type	*w=weight+woff(i,l),	s=(l==depth?q[i]:h[i]*wymlp_gra(q[i]))*wh;
 			for(unsigned  j=0;  j<hidden; j++) {	g[j]+=s*w[j];	w[j]-=s*p[j];	}
 		}
 	}
-	for(unsigned	i=0;	i<hidden;	i++) d[i]*=gra(a[i])*wi;
+	for(unsigned	i=0;	i<hidden;	i++) d[i]*=wymlp_gra(a[i])*wi;
 	for(unsigned  i=0;  i<=input; i++)	{
 		type	*w=weight+woff(i,0),	s=(i==input?1:x[i])*(eta<0||wyhash64(i,seed)>=drop);
 		for(unsigned	j=0;	j<hidden;	j++)	w[j]-=s*d[j];
