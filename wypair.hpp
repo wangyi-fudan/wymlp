@@ -1,9 +1,11 @@
 #include	"wyhash.h"
 #include	<math.h>
 template<unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	task>
-double	wypair(float	*weight,	unsigned	x,	unsigned	y,	float	t,	float	eta,	unsigned	nodes) {
-	if(weight==NULL)	return	(input*2+1)*hidden+(depth-1)*hidden*hidden+1*hidden+nodes*input;
+double	wypair(float	*weight,	unsigned	x,	unsigned	y,	float	t,	float	eta,	float	scalex,	float	scaley) {
+	if(weight==NULL)	return	(input*2+1)*hidden+(depth-1)*hidden*hidden+1*hidden+(x+y)*input;
 	#define	woff(i,l)	(l<0?((input*2+1)*hidden+(depth-1)*hidden*hidden+1*hidden+i*input):(l?(input*2+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden))
+//	if(weight==NULL)	return	(input*2+1)*hidden+hidden*hidden+1*hidden+(x+y)*input;
+//	#define	woff(i,l)	(l<0?(input*2+1)*hidden+hidden*hidden+1*hidden+i*input:(l?(l<depth?(input*2+1)*hidden+i*hidden:(input*2+1)*hidden+hidden*hidden+i*hidden ):i*hidden))
 	#define	wypair_act(x)	(x/(1+(((int)(x>0)<<1)-1)*x))
 	#define	wypair_gra(x)	((1-(((int)(x>0)<<1)-1)*x)*(1-(((int)(x>0)<<1)-1)*x))
 	float	a[2*depth*hidden+1]= {},	*d=a+depth*hidden,	*o=a+2*depth*hidden,	wh=1/sqrtf(hidden),	wi=1/sqrtf(input*2+1),	*w,	s,	ds;
@@ -20,9 +22,10 @@ double	wypair(float	*weight,	unsigned	x,	unsigned	y,	float	t,	float	eta,	unsigne
 			q[i]=(l==depth?s*wh:(i?wypair_act(s*wh):1));
 		}
 	}
+	float	loss=0;
 	switch(task){
-	case	0:{	for(unsigned	i=0;	i<1;	i++)	if(eta<0)	return	o[i];	else	o[i]=(o[i]-t)*eta;	}	break;
-	case	1:{	for(unsigned	i=0;	i<1;	i++)	if(eta<0)	return	1/(1+expf(-o[i]));	else	o[i]=(1/(1+expf(-o[i]))-t)*eta;	}	break;
+	case	0:{	for(unsigned	i=0;	i<1;	i++)	if(eta<0)	return	o[i];	else{	o[i]-=t;	loss+=o[i]*o[i];	o[i]*=eta;	}	}	break;
+	case	1:{	for(unsigned	i=0;	i<1;	i++)	if(eta<0)	return	1/(1+expf(-o[i]));	else{	o[i]=1/(1+expf(-o[i]))-t;	loss+=o[i]*o[i];    o[i]*=eta;  }	}	break;
 	};
 	for(unsigned	l=depth;	l;	l--) {
 		float	*p=a+(l-1)*hidden,	*q=(l==depth?o:a+l*hidden),	*g=d+(l-1)*hidden,	*h=(l==depth?o:d+l*hidden);
@@ -35,9 +38,9 @@ double	wypair(float	*weight,	unsigned	x,	unsigned	y,	float	t,	float	eta,	unsigne
 	for(unsigned	i=0;	i<=input*2;	i++){
 		w=weight+woff(i,0);	s=i<input?weight[woff(x,-1)+i]:(i<input*2?weight[woff(y,-1)+i-input]:1);	ds=0;
 		for(unsigned	j=0;	j<hidden;	j++){	ds+=d[j]*w[j];	w[j]-=s*d[j];	}
-		if(i<input)	weight[woff(x,-1)+i]-=ds;	else	if(i<input*2)	weight[woff(y,-1)+i-input]-=ds;
+		if(i<input)	weight[woff(x,-1)+i]-=scalex*ds;	else	if(i<input*2)	weight[woff(y,-1)+i-input]-=scaley*ds;
 	}
-	return	0;
+	return	loss;
 }
 /*
 Author: Wang Yi <godspeed_china@yeah.net>
