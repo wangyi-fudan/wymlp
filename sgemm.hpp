@@ -527,8 +527,9 @@ static inline void sgemm_ncopy_4(float *src, float *dst, unsigned lead_dim, unsi
       }
     }
 }
-template<unsigned	transa,	unsigned	transb,	unsigned	m,	unsigned	n,	unsigned	k,	unsigned	lda,	unsigned	ldb,	unsigned	ldc,	unsigned	beta,	unsigned	BLOCKDIM>
+template<unsigned	transa,	unsigned	transb,	unsigned	m,	unsigned	n,	unsigned	k,	unsigned	lda,	unsigned	ldb,	unsigned	ldc,	unsigned	beta>
 void inline sgemm(float alpha,float *a,float *b,float *c){
+	const	unsigned	BLOCKDIM=256;
 	float *b_buffer = (float *)aligned_alloc(64,BLOCKDIM*n*sizeof(float));
     float *a_buffer = (float *)aligned_alloc(4096,BLOCKDIM*BLOCKDIM*sizeof(float));
 	float *a_current_pos,*b_current_pos=b;

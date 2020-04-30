@@ -32,7 +32,7 @@ float	wymlp(float	*weight,	float	**x,	float	**y,	float	eta,	float	*a) {
 		for(unsigned	j=1;	j<hidden;	j++)	p[j]=wyact(wi*(p[j]+w[j]));
 	}
 	for(unsigned	l=1;	l<depth;	l++){
-		sgemm<1,0,hidden,batch,hidden,hidden,hidden,hidden,0,min(hidden,256u)>(wh,woff(0,l),aoff(0,l-1),aoff(0,l));
+		sgemm<1,0,hidden,batch,hidden,hidden,hidden,hidden,0>(wh,woff(0,l),aoff(0,l-1),aoff(0,l));
 		for(unsigned    b=0;    b<batch;    b++){
 			p=aoff(b,l);	p[0]=1;
 			for(unsigned	j=1;	j<hidden;	j++)	p[j]=wyact(p[j]);
@@ -40,7 +40,7 @@ float	wymlp(float	*weight,	float	**x,	float	**y,	float	eta,	float	*a) {
 	}
 
 	float	ret=0;
-	sgemm<1,0,output,batch,hidden,hidden,hidden,output,0,min(hidden,256u)>(wh,woff(0,depth),aoff(0,depth-1),o);
+	sgemm<1,0,output,batch,hidden,hidden,hidden,output,0>(wh,woff(0,depth),aoff(0,depth-1),o);
 	for(unsigned    b=0;    b<batch;    b++){
 		p=o+b*output;	
 		for(unsigned	i=0;	i<output;	i++){
@@ -49,15 +49,15 @@ float	wymlp(float	*weight,	float	**x,	float	**y,	float	eta,	float	*a) {
 			p[i]*=eta*wh;
 		}
 	}
-	sgemm<0,0,hidden,batch,output,hidden,output,hidden,0,min(hidden,256u)>(1,woff(0,depth),o,doff(0,depth-1));
-	sgemm<0,1,hidden,output,batch,hidden,output,hidden,1,min(hidden,256u)>(-1,aoff(0,depth-1),o,woff(0,depth-1));
+	sgemm<0,0,hidden,batch,output,hidden,output,hidden,0>(1,woff(0,depth),o,doff(0,depth-1));
+	sgemm<0,1,hidden,output,batch,hidden,output,hidden,1>(-1,aoff(0,depth-1),o,woff(0,depth-1));
 	for(unsigned	l=depth-1;	l;	l--) {
 		for(unsigned	b=0;	b<batch;	b++){
 			p=aoff(b,l);	q=doff(b,l);
 			for(unsigned	i=0;	i<hidden;	i++)	q[i]*=wygra(p[i])*wh;
 		}
-		sgemm<0,0,hidden,batch,hidden,hidden,hidden,hidden,0,min(hidden,256u)>(1,woff(0,l),doff(0,l),doff(0,l-1));
-		sgemm<0,1,hidden,hidden,batch,hidden,hidden,hidden,1,min(hidden,256u)>(-1,aoff(0,l-1),doff(0,l),woff(0,l));
+		sgemm<0,0,hidden,batch,hidden,hidden,hidden,hidden,0>(1,woff(0,l),doff(0,l),doff(0,l-1));
+		sgemm<0,1,hidden,hidden,batch,hidden,hidden,hidden,1>(-1,aoff(0,l-1),doff(0,l),woff(0,l));
 	}
 	for(unsigned    b=0;    b<batch;    b++){
 		w=woff(input,0);	p=aoff(b,0);	q=doff(b,0);
