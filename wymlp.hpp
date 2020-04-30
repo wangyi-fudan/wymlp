@@ -50,7 +50,7 @@ float	wymlp(float	*weight,	float	**x,	float	**y,	float	eta,	float	*a) {
 		}
 	}
 	sgemm<0,0,hidden,batch,output,hidden,output,hidden,0>(1,woff(0,depth),o,doff(0,depth-1));
-	sgemm<0,1,hidden,output,batch,hidden,output,hidden,1>(-1,aoff(0,depth-1),o,woff(0,depth-1));
+	sgemm<0,1,hidden,output,batch,hidden,output,hidden,1>(-1,aoff(0,depth-1),o,woff(0,depth));
 	for(unsigned	l=depth-1;	l;	l--) {
 		for(unsigned	b=0;	b<batch;	b++){
 			p=aoff(b,l);	q=doff(b,l);
