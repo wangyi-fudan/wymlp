@@ -1,6 +1,8 @@
+#include	<iostream>
 #include	<string.h>
-#include	"sgemm.c"
+#include	"sgemm.hpp"
 #include	<math.h>
+using	namespace	std;
 
 static	inline	float	wyact(float	x){	return	(x/(1+(((int)(x>0)<<1)-1)*x));	}
 
@@ -11,10 +13,6 @@ static	inline	unsigned	wywsize(void){	return	(input+1)*hidden+(depth-1)*hidden*h
 
 template<unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	batch>
 static	inline	unsigned	wyasize(void){	return	2*depth*batch*hidden+batch*output;	}
-
-static	inline	void	cblas_sgemm(char TrA, char TrB, int M, int N, int K, float Alpha, float *A, int lda, float *B, int ldb, float Beta, float *C, int ldc){
-	SGEMM_(&TrA,&TrB,&M,&N,&K,&Alpha,A,&lda,B,&ldb,&Beta,C,&ldc);
-}
 
 template<unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	batch>
 float	wymlp(float	*weight,	float	**x,	float	**y,	float	eta,	float	*a) {
@@ -33,33 +31,33 @@ float	wymlp(float	*weight,	float	**x,	float	**y,	float	eta,	float	*a) {
 		w=woff(input,0);	p[0]=1;
 		for(unsigned	j=1;	j<hidden;	j++)	p[j]=wyact(wi*(p[j]+w[j]));
 	}
-	float	ret=0;
-	for(unsigned	l=1;	l<=depth;	l++){
-		cblas_sgemm('T','N',l==depth?output:hidden,batch,hidden,wh,woff(0,l),hidden,aoff(0,l-1),hidden,0,l==depth?o:aoff(0,l),l==depth?output:hidden);
+	for(unsigned	l=1;	l<depth;	l++){
+		sgemm<1,0,hidden,batch,hidden,hidden,hidden,hidden,0,min(hidden,256u)>(wh,woff(0,l),aoff(0,l-1),aoff(0,l));
 		for(unsigned    b=0;    b<batch;    b++){
-			if(l<depth){
-				p=aoff(b,l);	p[0]=1;
-				for(unsigned	j=1;	j<hidden;	j++)	p[j]=wyact(p[j]);
-			}
-			else{
-				p=o+b*output;	
-				for(unsigned	i=0;	i<output;	i++){
-					p[i]-=y[b][i];
-					ret+=p[i]*p[i];
-					p[i]*=eta*wh;
-				}
-			}
+			p=aoff(b,l);	p[0]=1;
+			for(unsigned	j=1;	j<hidden;	j++)	p[j]=wyact(p[j]);
 		}
 	}
-	for(unsigned	l=depth;	l;	l--) {
-		if(l<depth){
-			for(unsigned	b=0;	b<batch;	b++){
-				p=aoff(b,l);	q=doff(b,l);
-				for(unsigned	i=0;	i<hidden;	i++)	q[i]*=wygra(p[i])*wh;
-			}
+
+	float	ret=0;
+	sgemm<1,0,output,batch,hidden,hidden,hidden,output,0,min(hidden,256u)>(wh,woff(0,depth),aoff(0,depth-1),o);
+	for(unsigned    b=0;    b<batch;    b++){
+		p=o+b*output;	
+		for(unsigned	i=0;	i<output;	i++){
+			p[i]-=y[b][i];
+			ret+=p[i]*p[i];
+			p[i]*=eta*wh;
 		}
-		cblas_sgemm('N','N',hidden,batch,l==depth?output:hidden,1,woff(0,l),hidden,l==depth?o:doff(0,l),l==depth?output:hidden,0,doff(0,l-1),hidden);
-		cblas_sgemm('N','T',hidden,l==depth?output:hidden, batch,-1,aoff(0,l-1),hidden,l==depth?o:doff(0,l),l==depth?output:hidden,1,woff(0,l),hidden);
+	}
+	sgemm<0,0,hidden,batch,output,hidden,output,hidden,0,min(hidden,256u)>(1,woff(0,depth),o,doff(0,depth-1));
+	sgemm<0,1,hidden,output,batch,hidden,output,hidden,1,min(hidden,256u)>(-1,aoff(0,depth-1),o,woff(0,depth-1));
+	for(unsigned	l=depth-1;	l;	l--) {
+		for(unsigned	b=0;	b<batch;	b++){
+			p=aoff(b,l);	q=doff(b,l);
+			for(unsigned	i=0;	i<hidden;	i++)	q[i]*=wygra(p[i])*wh;
+		}
+		sgemm<0,0,hidden,batch,hidden,hidden,hidden,hidden,0,min(hidden,256u)>(1,woff(0,l),doff(0,l),doff(0,l-1));
+		sgemm<0,1,hidden,hidden,batch,hidden,hidden,hidden,1,min(hidden,256u)>(-1,aoff(0,l-1),doff(0,l),woff(0,l));
 	}
 	for(unsigned    b=0;    b<batch;    b++){
 		w=woff(input,0);	p=aoff(b,0);	q=doff(b,0);
@@ -82,7 +80,7 @@ const	unsigned	fullbatch=1<<20;
 #include	<sys/time.h>
 using	namespace	std;
 
-int	main(void){
+unsigned	main(void){
 	float	*x[batch],	*y[batch],	z[input]={};
 	for(unsigned	b=0;	b<batch;	b++)	x[b]=y[b]=z;
 	size_t	wsize=wywsize<input,hidden,depth,output,batch>();
