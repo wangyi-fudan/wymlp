@@ -1,11 +1,16 @@
 #include	"wyhash.h"
 #include	<math.h>
+static  inline  float   wymlp_act(float x){ return  (x/(1+(((int)(x>0)<<1)-1)*x));  }
+static  inline  float   wymlp_gra(float x){ return  ((1-(((int)(x>0)<<1)-1)*x)*(1-(((int)(x>0)<<1)-1)*x));  }
 template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	task>
-unsigned	wymlp(type	*weight,	type	*x,	type	*y,	type	eta,	uint64_t	seed,	double	dropout) {
+double	wymlp(type	*weight,	type	*x,	type	*y,	type	eta,	uint64_t	seed,	double	dropout) {
+#ifdef WYMLP_RNN
 	if(weight==NULL)	return	(input+1)*hidden+hidden*hidden+output*hidden;
 	#define	woff(i,l)	(l?(l<depth?(input+1)*hidden+i*hidden:(input+1)*hidden+hidden*hidden+i*hidden ):i*hidden)
-	#define	wymlp_act(x)	(x/(1+(((int)(x>0)<<1)-1)*x))
-	#define	wymlp_gra(x)	((1-(((int)(x>0)<<1)-1)*x)*(1-(((int)(x>0)<<1)-1)*x))
+#else
+	if(weight==NULL)	return	(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden;
+	#define	woff(i,l)	(l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden)
+#endif
 	type	a[2*depth*hidden+output]= {},	*d=a+depth*hidden,	*o=a+2*depth*hidden,	wh=1/sqrtf(hidden),	wi=(1-(eta<0)*dropout)/sqrtf(input+1);	uint64_t	drop=dropout*~0ull;
 	for(unsigned  i=0;  i<=input; i++)	{
 		type	*w=weight+woff(i,0),	s=(i==input?1:x[i])*(eta<0||wyhash64(i,seed)>=drop);
