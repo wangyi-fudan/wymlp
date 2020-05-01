@@ -1,19 +1,17 @@
+#define	WYMLP_AVX512F
 #include	<sys/time.h>
 #include	<algorithm>
 #include	<iostream>
 #include	<stdint.h>
 #include	<unistd.h>
 #include	<fstream>
-#include	"wymlp.cpp"
-#include	"wyhash32.h"
+#include	"wymlp.hpp"
 #include	<vector>
 using	namespace	std;
-const	unsigned	input=12;
-const	unsigned	hidden=64;
-const	unsigned	output=1;
-const	unsigned	depth=4;
-const	unsigned	batch=64;
-const	unsigned	fullbatch=1<<20;
+const	unsigned	minibatch=256;
+const	unsigned	fullbatch=1<<18;
+
+wymlp<12,32,4,1,minibatch>	model;
 
 bool	load_matrix(const	char	*F,	vector<float>	&M,	unsigned	&R,	unsigned	&C) {
 	ifstream	fi(F);
@@ -41,6 +39,7 @@ void	document(void) {
 }
 
 int	main(int	ac,	char	**av){
+	uint64_t	seed=0;
 	cerr<<"***********************************\n";
 	cerr<<"* train                           *\n";
 	cerr<<"* author: Yi Wang                 *\n";
@@ -76,31 +75,31 @@ int	main(int	ac,	char	**av){
 		sx/=sample;	sxx=sqrt(sxx/sample-sx*sx);	float	m=mean[j]=sx,	p=prec[j]=sxx>0?1/sxx:0;
 		for(size_t	i=0;	i<sample;	i++)	data[i*feature+j]=(data[i*feature+j]-m)*p;
 	}
-	vector<bool>	trte;	for(size_t	i=0;	i<sample;	i++)	trte.push_back(wy32x32(i,0)&15);
-	size_t	wsize=wywsize<input,hidden,depth,output,batch>();
-	size_t	asize=wyasize<input,hidden,depth,output,batch>();
-	float	*w=(float*)aligned_alloc(64,wsize*sizeof(float));
-	float	*a=(float*)aligned_alloc(64,asize*sizeof(float));
-	uint64_t	seed=time(NULL);
-	for(size_t	i=0;	i<wsize;	i++)	w[i]=wy2gau(wyrand(&seed));
-	timeval	beg,	end;	gettimeofday(&beg,NULL);
-	float	*x[batch],	*y[batch];
+	vector<bool>	trte;	for(size_t	i=0;	i<sample;	i++)	trte.push_back(wy32x32(i,0)&7);
+	model.alloc_weight();	model.init_weight(seed);
+
+	timeval	beg,	end;	gettimeofday(&beg,NULL);	float	*x[minibatch],	*y[minibatch];
 	for(size_t	e=0;	e<epoches;	e++){
-		double	loss=0;
-		for(size_t	i=0;	i<fullbatch;	i+=batch){
-			for(size_t	b=0;	b<batch;	b++){
+		for(size_t	i=0;	i<fullbatch;	i+=minibatch){
+			for(size_t	b=0;	b<minibatch;	b++){
 				uint64_t	ran;
 				do	ran=wyrand(&seed)%sample;	while(!trte[ran]);
 				x[b]=data.data()+ran*feature+ysize;
 				y[b]=data.data()+ran*feature;
 			}
-			loss+=wymlp<input,hidden,depth,output,batch>(w,	x,	y,	eta,	a);
+			model.train(x,	y,	eta);
 		}
-		cerr<<e<<'\t'<<sqrt(loss/fullbatch)/prec[0]<<'\n';
+		double	loss=0,	n=0;
+		for(size_t	i=0;	i<sample;	i++)	if(!trte[i]){
+			float	h=0,	t=data[i*feature];
+			model.predict(data.data()+i*feature+ysize,	&h);
+			loss+=(h-t)*(h-t);	n+=1;
+		}
+		cerr<<e<<'\t'<<sqrt(loss/n)/prec[0]<<'\n';
 	}
 	gettimeofday(&end,NULL);
 	float	deltat=(end.tv_sec-beg.tv_sec)+1e-6*(end.tv_usec-beg.tv_usec);
-	cerr<<1e-9*wsize*6*epoches*fullbatch/deltat<<" GFLOPS\n";
-	free(w);	free(a);
+	cerr<<epoches*fullbatch/deltat<<" sample/sec\n";
+	model.free_weight();
 	return	0;
 }
