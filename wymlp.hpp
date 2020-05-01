@@ -3,6 +3,8 @@
 #include	"wyhash32.h"
 #include	"float16.h"
 #include	<string.h>
+#include	<unistd.h>
+#include	<float.h>
 #include	<stdio.h>
 #include	<fcntl.h>
 #include	<math.h>
