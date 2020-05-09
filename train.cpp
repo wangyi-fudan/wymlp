@@ -1,4 +1,3 @@
-#define	WYMLP_AVX512F
 #include	<sys/time.h>
 #include	<algorithm>
 #include	<iostream>
@@ -8,10 +7,8 @@
 #include	"wymlp.hpp"
 #include	<vector>
 using	namespace	std;
-const	unsigned	minibatch=256;
-const	unsigned	fullbatch=1<<18;
-
-wymlp<12,32,4,1,minibatch>	model;
+const	unsigned	fullbatch=1<<20;
+wymlp<float,12,32,4,1>	model;
 
 bool	load_matrix(const	char	*F,	vector<float>	&M,	unsigned	&R,	unsigned	&C) {
 	ifstream	fi(F);
@@ -78,16 +75,12 @@ int	main(int	ac,	char	**av){
 	vector<bool>	trte;	for(size_t	i=0;	i<sample;	i++)	trte.push_back(wy32x32(i,0)&7);
 	model.alloc_weight();	model.init_weight(seed);
 
-	timeval	beg,	end;	gettimeofday(&beg,NULL);	float	*x[minibatch],	*y[minibatch];
+	timeval	beg,	end;	gettimeofday(&beg,NULL);
 	for(size_t	e=0;	e<epoches;	e++){
-		for(size_t	i=0;	i<fullbatch;	i+=minibatch){
-			for(size_t	b=0;	b<minibatch;	b++){
-				uint64_t	ran;
-				do	ran=wyrand(&seed)%sample;	while(!trte[ran]);
-				x[b]=data.data()+ran*feature+ysize;
-				y[b]=data.data()+ran*feature;
-			}
-			model.train(x,	y,	eta);
+		for(size_t	i=0;	i<fullbatch;	i++){
+			uint64_t	ran;
+			do	ran=wyrand(&seed)%sample;	while(!trte[ran]);
+			model.train(data.data()+ran*feature+ysize,	data.data()+ran*feature,	eta);
 		}
 		double	loss=0,	n=0;
 		for(size_t	i=0;	i<sample;	i++)	if(!trte[i]){
