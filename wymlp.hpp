@@ -3,43 +3,48 @@
 #include	"wyhash32.h"
 #include	<string.h>
 #include	<unistd.h>
-#include	<float.h>
 #include	<stdio.h>
 #include	<fcntl.h>
 #include	<math.h>
 #include	<omp.h>
-#ifdef	WYMLP_AVX512F
-#include	"sgemm.hpp"
-#endif
-
-template<unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	batch>
+template<class	type,	unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	threads>
 class	wymlp{
 private:
-	const	float	wh=1/sqrtf(hidden),	wi=1/sqrtf(input+1),	lr=powf(0.5f,0.5f*depth);
+	omp_lock_t	lock;
 	int	fd;
 	struct	stat	sb;
-	float	act(float	x){	return	x/sqrtf(1+x*x);	}
-	float   gra(float x){ x=1-x*x;	return	M_SQRT2*x*sqrtf(x); }
-	unsigned	size(void){	return	(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden;	}
+	type	*gradient;
+	unsigned	accu[threads]={};
+	type	act(type	x){ return	x/sqrt(1+x*x);	}
+	type	gra(type	x){	x=1-x*x;	return	x*sqrt(x);	}
+	uint64_t	size(void){	return	(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden;	}
 	unsigned	woff(unsigned	i,	unsigned	l){	return	 (l?(input+1)*hidden+(l-1)*hidden*hidden+i*hidden:i*hidden);	}
 public:
-	float	*weight,	*gradient;
-	wymlp(){	weight=NULL;	}
-	void	alloc_weight(void){	free(weight);weight=(float*)aligned_alloc(64,size()*sizeof(float));	}
-	void	free_weight(void){	free(weight);	weight=NULL;	}
+	type	*weight;
+	wymlp(){	weight=NULL;	gradient=NULL;	omp_set_num_threads(threads);	omp_init_lock(&lock);	}
+	~wymlp(){	omp_destroy_lock(&lock);	}
+	void	alloc_weight(void){	
+		free(weight);	weight=(type*)aligned_alloc(64,size()*sizeof(type));	
+		free(gradient);	gradient=(type*)aligned_alloc(64,threads*size()*sizeof(type));	
+		memset(gradient,0,threads*size()*sizeof(type));
+	}
+	void	free_weight(void){
+		free(weight);	weight=NULL;	
+		free(gradient);	gradient=NULL;	
+	}
 	void	init_weight(uint64_t	seed){	for(size_t	i=0;	i<size();	i++)	weight[i]=wy2gau(wyrand(&seed));	}
 	bool	mmap_weight(const	char	*F){
 		fd=open(F,	O_RDONLY);	if(fd<0)	return	false;
 		fstat(fd,	&sb);
-		weight=(float*)mmap(NULL,	sb.st_size,	PROT_READ,	MAP_SHARED,	fd,	0);
+		weight=(type*)mmap(NULL,	sb.st_size,	PROT_READ,	MAP_SHARED,	fd,	0);
 		if(weight==MAP_FAILED)	return	false;
 		return	true;
 	}
-	void	ummap_weight(void){	munmap(weight,sb.st_size);	close(fd);	weight=NULL;	}
+	void	munmap_weight(void){	munmap(weight,sb.st_size);	close(fd);	weight=NULL;	}
 	bool	save(const	char	*F){
 		FILE	*f=fopen(F,	"wb");
 		if(f==NULL)	return	false;
-		fwrite(weight,sizeof(float),size(),f);
+		fwrite(weight,sizeof(type),size(),f);
 		fclose(f);
 		return	true;
 	}
@@ -47,119 +52,88 @@ public:
 		if(weight==NULL)	alloc_weight();
 		FILE	*f=fopen(F,	"rb");
 		if(f==NULL)	return	false;
-		fread(weight,sizeof(float),size(),f);
+		fread(weight,sizeof(type),size(),f);
 		fclose(f);
 		return	true;
 	}
-	#ifndef	WYMLP_AVX512F
-	void	train(float	**x,	float	**y,	float	eta) {
-		for(unsigned	b=0;	b<batch;	b++){
-			float	a[2*depth*hidden+output]={},	*d=a+depth*hidden,	*o=a+2*depth*hidden;
-			for(unsigned  i=0;  i<=input; i++)	{
-				float	*w=weight+woff(i,0),	s=(i==input?wi:wi*x[b][i]);
-				for(unsigned	j=0;	j<hidden;	j++)	a[j]+=s*w[j];
-			}
-			for(unsigned	i=0;	i<hidden;	i++)	a[i]=act(a[i]);
-			a[0]=1;
-			for(unsigned	l=1;	l<=depth;	l++) {
-				float	*p=a+(l-1)*hidden,	*q=(l==depth?o:a+l*hidden);
-				for(unsigned	i=0;	i<(l==depth?output:hidden);	i++) {
-					float	*w=weight+woff(i,l),	s=0;
-					for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*p[j];
-					q[i]*=wh;
-				}
-				if(l<depth){
-					for(unsigned	i=0;	i<hidden;	i++)	q[i]=act(q[i]);
-					q[0]=1;
-				}
-			}
-			eta*=lr;
-			for(unsigned	i=0;	i<output;	i++)	o[i]=(o[i]-y[b][i])*eta;
-			for(unsigned	l=depth;	l;	l--) {
-				float	*p=a+(l-1)*hidden,	*q=(l==depth?o:a+l*hidden),	*g=d+(l-1)*hidden,	*h=(l==depth?o:d+l*hidden);
-				for(unsigned	i=0;	i<(l==depth?output:hidden);	i++) {
-					float	*w=weight+woff(i,l),	s=(l==depth?q[i]:h[i]*gra(q[i]))*wh;
-					for(unsigned  j=0;  j<hidden; j++) {	g[j]+=s*w[j];	w[j]-=s*p[j];	}
-				}
-			}
-			for(unsigned	i=0;	i<hidden;	i++) d[i]*=gra(a[i])*wi;
-			for(unsigned  i=0;  i<=input; i++)	{
-				float	*w=weight+woff(i,0),	s=(i==input?1:x[b][i]);
-				for(unsigned	j=0;	j<hidden;	j++)	w[j]-=s*d[j];
-			}
-		}
-	}
-	#else
-	void	train(float	**x,	float	**y,	float	eta) {
-		#define	aoff(b,l)	(a+(l)*batch*hidden+(b)*hidden)
-		#define	doff(b,l)	(d+(l)*batch*hidden+(b)*hidden)
-		float   *a=(float*)aligned_alloc(64,(2*depth*batch*hidden+batch*output)*sizeof(float));	
-		float	*d=a+depth*batch*hidden,	*o=d+depth*batch*hidden,	*p,	*q,	*w;
-		memset(a,	0,	batch*hidden*sizeof(float));
-		for(unsigned	b=0;	b<batch;	b++){
-			p=aoff(b,0);
-			for(unsigned	i=0;	i<=input;	i++){
-				w=weight+woff(i,0);	float	s=(i==input?wi:wi*x[b][i]);
-				for(unsigned	j=0;	j<hidden;	j++)	p[j]+=s*w[j];
-			}
-			for(unsigned	i=0;	i<hidden;	i++)	p[i]=act(p[i]);
-			p[0]=1;
-		}
-		for(unsigned	l=1;	l<depth;	l++){
-			sgemm<1,0,hidden,batch,hidden,hidden,hidden,hidden,0>(wh,weight+woff(0,l),aoff(0,l-1),aoff(0,l));
-			for(unsigned    b=0;    b<batch;    b++){
-				p=aoff(b,l);
-				for(unsigned	i=0;	i<hidden;	i++)	p[i]=act(p[i]);
-				p[0]=1;
-			}
-		}
-		sgemm<1,0,output,batch,hidden,hidden,hidden,output,0>(wh,weight+woff(0,depth),aoff(0,depth-1),o);
-		eta*=wh*lr;
-		for(unsigned    b=0;    b<batch;    b++){
-			p=o+b*output;	
-			for(unsigned	i=0;	i<output;	i++)	p[i]=(p[i]-y[b][i])*eta;
-		}
-		sgemm<0,0,hidden,batch,output,hidden,output,hidden,0>(1,weight+woff(0,depth),o,doff(0,depth-1));
-		sgemm<0,1,hidden,output,batch,hidden,output,hidden,1>(-1,aoff(0,depth-1),o,weight+woff(0,depth));
-		for(unsigned	l=depth-1;	l;	l--) {
-			for(unsigned	b=0;	b<batch;	b++){
-				p=aoff(b,l);	q=doff(b,l);
-				for(unsigned	i=0;	i<hidden;	i++)	q[i]*=gra(p[i])*wh;
-			}
-			sgemm<0,0,hidden,batch,hidden,hidden,hidden,hidden,0>(1,weight+woff(0,l),doff(0,l),doff(0,l-1));
-			sgemm<0,1,hidden,hidden,batch,hidden,hidden,hidden,1>(-1,aoff(0,l-1),doff(0,l),weight+woff(0,l));
-		}
-		for(unsigned    b=0;    b<batch;    b++){
-			p=aoff(b,0);	q=doff(b,0);
-			for(unsigned	j=0;	j<hidden;	j++)	q[j]*=gra(p[j])*wi;
-			for(unsigned	i=0;	i<=input;	i++){
-				w=weight+woff(i,0);	float	s=(i==input?wi:wi*x[b][i]);
-				for(unsigned	j=0;	j<hidden;	j++)	w[j]-=s*q[j];
-			}
-		}
-		free(a);
-	}
-	#endif
-	void	predict(float	*x,	float	*y) {
-		float	a[depth*hidden+output]= {},	*o=a+depth*hidden,	wh=1/sqrtf(hidden),	wi=1/sqrtf(input+1);
-		for(unsigned  i=0;  i<=input; i++)	{
-			float	*w=weight+woff(i,0),	 s=(i==input?wi:wi*x[i]);
+	void	train(float	*x,	float	*y,	type	eta,	unsigned	tid) {
+		const	type	wh=1/sqrtf(hidden),	wi=1/sqrtf(input+1);
+		type	a[2*depth*hidden+output]={},	*d=a+depth*hidden,	*o=d+depth*hidden,	*w,	s,	*grd=gradient+tid*size(),	*gr;
+		for(unsigned  i=0;  i<input; i++)	{
+			w=weight+woff(i,0);	s=x[i];
 			for(unsigned	j=0;	j<hidden;	j++)	a[j]+=s*w[j];
 		}
-		for(unsigned	i=0;	i<hidden;	i++)	a[i]=act(a[i]);
+		w=weight+woff(input,0);
+		for(unsigned	i=0;	i<hidden;	i++) a[i]=act(wi*(a[i]+w[i]));
 		a[0]=1;
-		for(unsigned	l=1;	l<=depth;	l++) {
-			float	*p=a+(l-1)*hidden,	*q=(l==depth?o:a+l*hidden);
-			for(unsigned	i=0;	i<(l==depth?output:hidden);	i++) {
-				float	*w=weight+woff(i,l),	s=0;
+		for(unsigned	l=1;	l<depth;	l++) {
+			type	*p=a+(l-1)*hidden,	*q=a+l*hidden;
+			for(unsigned	i=0;	i<hidden;	i++) {
+				w=weight+woff(i,l);	s=0;
 				for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*p[j];
-				q[i]=s*wh;
+				q[i]=act(s*wh);
 			}
-			if(l<depth){
-				for(unsigned	i=0;	i<hidden;	i++)	q[i]=act(q[i]);
-				q[0]=1;
+			q[0]=1;
+		}
+		{
+			type	*p=a+(depth-1)*hidden;	eta*=wh;
+			for(unsigned	i=0;	i<output;	i++) {
+				w=weight+woff(i,depth);	s=0;
+				for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*p[j];
+				o[i]=(s*wh-y[i])*eta;
+			}
+			type	*g=d+(depth-1)*hidden;
+			for(unsigned	i=0;	i<output;	i++) {
+				w=weight+woff(i,depth);	gr=grd+woff(i,depth);	s=o[i];
+				for(unsigned  j=0;  j<hidden; j++) {	g[j]+=s*w[j];	gr[j]-=s*p[j];	}
 			}
 		}
-		for(unsigned    i=0;    i<output;   i++)	y[i]=o[i];
+		for(unsigned	l=depth-1;	l;	l--) {
+			type	*p=a+(l-1)*hidden,	*q=a+l*hidden,	*g=d+(l-1)*hidden,	*h=d+l*hidden;
+			for(unsigned	i=0;	i<hidden;	i++) {
+				w=weight+woff(i,l);	gr=grd+woff(i,l);	s=h[i]*gra(q[i])*wh;
+				for(unsigned  j=0;  j<hidden; j++) {	g[j]+=s*w[j];	gr[j]-=s*p[j];	}
+			}
+		}
+		gr=grd+woff(input,0);
+		for(unsigned	i=0;	i<hidden;	i++){ d[i]*=gra(a[i])*wi;	gr[i]-=d[i];	}
+		for(unsigned  i=0;  i<input; i++)	{
+			gr=grd+woff(i,0);	s=x[i];
+			for(unsigned	j=0;	j<hidden;	j++)	gr[j]-=s*d[j];
+		}
+		accu[tid]++;
+		if((wy32x32(accu[tid],tid)&1023)==0){
+			unsigned	si=size();
+			omp_set_lock(&lock);
+			for(unsigned	i=0;	i<si;	i++)	weight[i]+=grd[i];
+			omp_unset_lock(&lock);
+			memset(grd,0,size()*sizeof(type));
+		}
+	}
+	void	predict(float	*x,	float	*y) {
+		const	type	wh=1/sqrtf(hidden),	wi=1/sqrtf(input+1);
+		type	a[depth*hidden]= {},	*w,	s;
+		for(unsigned  i=0;  i<input; i++)	{
+			w=weight+woff(i,0);	s=x[i];
+			for(unsigned	j=0;	j<hidden;	j++)	a[j]+=s*w[j];
+		}
+		w=weight+woff(input,0);
+		for(unsigned	i=0;	i<hidden;	i++) a[i]=act(wi*(a[i]+w[i]));
+		a[0]=1;
+		for(unsigned	l=1;	l<depth;	l++) {
+			type	*p=a+(l-1)*hidden,	*q=a+l*hidden;
+			for(unsigned	i=0;	i<hidden;	i++) {
+				w=weight+woff(i,l);	s=0;
+				for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*p[j];
+				q[i]=act(s*wh);
+			}
+			q[0]=1;
+		}
+		type	*p=a+(depth-1)*hidden;
+		for(unsigned	i=0;	i<output;	i++) {
+			w=weight+woff(i,depth);	s=0;
+			for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*p[j];
+			y[i]=s*wh;
+		}
 	}
 };
