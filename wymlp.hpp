@@ -20,7 +20,7 @@ public:
 	wymlp(){	weight=NULL;	}
 	void	alloc_weight(void){	free(weight);	weight=(float*)aligned_alloc(64,size()*sizeof(float));	}
 	void	free_weight(void){	free(weight);	weight=NULL;	}
-	void	init_weight(uint64_t	seed){	for(size_t	i=0;	i<size();	i++)	weight[i]=wy2gau(wyrand(&seed));	}
+	void	init_weight(uint64_t	seed){	for(size_t	i=0;	i<size();	i++)	weight[i]=(i<(input+1)*hidden?1.0f:1.592537420f)*wy2gau(wyrand(&seed));	}
 	bool	mmap_weight(const	char	*F){
 		fd=open(F,	O_RDONLY);	if(fd<0)	return	false;
 		fstat(fd,	&sb);
