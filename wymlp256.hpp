@@ -1,4 +1,3 @@
-//#include	"avx_mathfun.h"
 #include	"sgemm256.hpp"
 #include	<sys/mman.h>
 #include	<sys/stat.h>
@@ -15,9 +14,8 @@ class	wymlp{
 private:
 	int	fd;
 	struct	stat	sb;
-//	float   gra(float x){	return	1-x*x;	}
-	float	act(float	x){	return	x/sqrtf(1+x*x);	}
-	float   gra(float x){	x=1-x*x;	return	x*sqrtf(x);	}
+	float	act(float	x){ return	x>1?1:(x<-1?-1:x);	}
+	float	gra(float	x){	return	x>=1||x<=-1?0:1;	}
 	unsigned	woff(unsigned	i,	unsigned	l){	return	 (l?input*hidden+(l==depth)*hidden*hidden+i*hidden:i*input);	}
 public:
 	float	*weight;
@@ -65,7 +63,6 @@ public:
 		for(unsigned	b=0;	b<batch;	b++){
 			p=aoff(b,0);
 			for(unsigned	i=0;	i<hidden;	i++)	p[i]=act(p[i]);
-//			for(unsigned	i=0;	i<hidden;	i+=8)	*(v8sf*)(p+i)=tanh256_ps(*(v8sf*)(p+i));
 			p[0]=1;
 		}
 		for(unsigned	l=1;	l<depth;	l++){
@@ -73,7 +70,6 @@ public:
 			for(unsigned    b=0;    b<batch;    b++){
 				p=aoff(b,l);
 				for(unsigned	i=0;	i<hidden;	i++)	p[i]=act(p[i]);
-//				for(unsigned	i=0;	i<hidden;	i+=8)	*(v8sf*)(p+i)=tanh256_ps(*(v8sf*)(p+i));
 				p[0]=1;
 			}
 		}
