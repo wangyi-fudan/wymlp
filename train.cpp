@@ -8,7 +8,7 @@
 #include	<vector>
 using	namespace	std;
 const	unsigned	fullbatch=1<<20;
-wymlp<12,32,16,1>	model;
+wymlp<12,32,4,1>	model;
 
 bool	load_matrix(const	char	*F,	vector<float>	&M,	unsigned	&R,	unsigned	&C) {
 	ifstream	fi(F);

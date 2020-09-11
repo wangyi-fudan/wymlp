@@ -11,8 +11,8 @@ class	wymlp{
 private:
 	int	fd;
 	struct	stat	sb;
-	float	act(float	x){ return	x/sqrtf(1+x*x);	}
-	float	gra(float	x){	x=1-x*x;	return	x*sqrtf(x);	}
+	float	act(float	x){ return	x>1?1:(x<-1?-1:x);	}
+	float	gra(float	x){	return	x>=1||x<=-1?0:1;	}
 	unsigned	size(void){	return	(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden;	}
 	unsigned	woff(unsigned	i,	unsigned	l){	return	 (input+1)*hidden+(l-1)*hidden*hidden+i*hidden;	}
 public:
