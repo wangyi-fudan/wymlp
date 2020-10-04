@@ -6,21 +6,22 @@
 #include	<stdio.h>
 #include	<fcntl.h>
 #include	<math.h>
-template<unsigned	input,	unsigned	hidden,	unsigned	depth,	unsigned	output>
+template<unsigned	hidden,	unsigned	depth,	unsigned	output>
 class	wymlp{
 private:
 	int	fd;
 	struct	stat	sb;
-	float	act(float	x){	return  x/sqrtf(1+x*x); 	}
-	float	gra(float	x){	x=1-x*x;    return  x*sqrtf(x);	}
+	float	act(float	x){	return  x/(1+fabsf(x));	}
+	float	gra(float	x){	x=1-fabsf(x);	return	x*x;	}
 	unsigned	size(void){	return	(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden;	}
 	unsigned	woff(unsigned	i,	unsigned	l){	return	 (input+1)*hidden+(l-1)*hidden*hidden+i*hidden;	}
 public:
+	unsigned	input;
 	float	*weight;
 	wymlp(){	weight=NULL;	}
 	void	alloc_weight(void){	free(weight);	weight=(float*)aligned_alloc(64,size()*sizeof(float));	}
 	void	free_weight(void){	free(weight);	weight=NULL;	}
-	void	init_weight(uint64_t	seed){	for(size_t	i=0;	i<size();	i++)	weight[i]=wy2gau(wyrand(&seed));	}
+	void	init_weight(uint64_t	seed){	for(unsigned	i=0;	i<size();	i++)	weight[i]=wy2gau(wyrand(&seed));	}
 	bool	mmap_weight(const	char	*F){
 		fd=open(F,	O_RDONLY);	if(fd<0)	return	false;
 		fstat(fd,	&sb);
