@@ -13,12 +13,13 @@ private:
 	struct	stat	sb;
 	float	act(float	x){	return  x/(1+fabsf(x));	}
 	float	gra(float	x){	x=1-fabsf(x);	return	x*x;	}
-	unsigned	size(void){	return	(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden;	}
 	unsigned	woff(unsigned	i,	unsigned	l){	return	 (input+1)*hidden+(l-1)*hidden*hidden+i*hidden;	}
 public:
 	unsigned	input;
 	float	*weight;
 	wymlp(){	weight=NULL;	}
+	unsigned	flops(void){	return	 (input+1)*hidden*4+((depth-1)*hidden*hidden+output*hidden)*6;	}
+	unsigned	size(void){	return	(input+1)*hidden+(depth-1)*hidden*hidden+output*hidden;	}
 	void	alloc_weight(void){	free(weight);	weight=(float*)aligned_alloc(64,size()*sizeof(float));	}
 	void	free_weight(void){	free(weight);	weight=NULL;	}
 	void	init_weight(uint64_t	seed){	for(unsigned	i=0;	i<size();	i++)	weight[i]=wy2gau(wyrand(&seed));	}
@@ -45,76 +46,39 @@ public:
 		fclose(f);
 		return	true;
 	}
-	void	train(float	*x,	float	*y,	float	eta) {
+	void	model(float	*x,	float	*y,	float	eta) {
 		const	float	wh=1/sqrtf(hidden),	wi=1/sqrtf(input+1);
-		float	a[2*depth*hidden+output]={},	*d=a+depth*hidden,	*o=d+depth*hidden,	*w,	s;
-		for(unsigned  i=0;  i<input; i++)	{
-			w=weight+i*hidden;	s=x[i];
-			for(unsigned	j=0;	j<hidden;	j++)	a[j]+=s*w[j];
+		float	a[2*depth*hidden+output]={},	*d=a+depth*hidden,	*o=d+depth*hidden,	*w,	s,	*p,	*q,	*g,	*h;
+		unsigned	i,j,l;
+		for(i=0;  i<=input; i++){
+			w=weight+i*hidden;	s=i<input?x[i]:1;
+			for(j=0;	j<hidden;	j++)	a[j]+=s*w[j];
 		}
-		w=weight+input*hidden;
-		for(unsigned	i=0;	i<hidden;	i++) a[i]=act(wi*(a[i]+w[i]));
-		a[0]=1;
-		for(unsigned	l=1;	l<depth;	l++) {
-			float	*p=a+(l-1)*hidden,	*q=a+l*hidden;
-			for(unsigned	i=0;	i<hidden;	i++) {
+		for(i=0;	i<hidden;	i++){ a[i]=act(wi*a[i]);	}	a[0]=1;
+		for(l=1;	l<=depth;	l++) {
+			p=a+(l-1)*hidden;	q=l<depth?a+l*hidden:o;	q[0]=1;
+			for(i=l<depth?1:0;	i<(l<depth?hidden:output);	i++) {
 				w=weight+woff(i,l);	s=0;
-				for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*p[j];
-				q[i]=act(s*wh);
-			}
-			q[0]=1;
-		}
-		{
-			float	*p=a+(depth-1)*hidden;	eta*=wh;
-			for(unsigned	i=0;	i<output;	i++) {
-				w=weight+woff(i,depth);	s=0;
-				for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*p[j];
-				o[i]=(s*wh-y[i])*eta;
-			}
-			float	*g=d+(depth-1)*hidden;
-			for(unsigned	i=0;	i<output;	i++) {
-				w=weight+woff(i,depth);	s=o[i];
-				for(unsigned  j=0;  j<hidden; j++) {	g[j]+=s*w[j];	w[j]-=s*p[j];	}
+				for(j=0;	j<hidden;	j++)	s+=w[j]*p[j];
+				q[i]=l<depth?act(wh*s):wh*s;
 			}
 		}
-		for(unsigned	l=depth-1;	l;	l--) {
-			float	*p=a+(l-1)*hidden,	*q=a+l*hidden,	*g=d+(l-1)*hidden,	*h=d+l*hidden;
-			for(unsigned	i=0;	i<hidden;	i++) {
-				w=weight+woff(i,l);	s=h[i]*gra(q[i])*wh;
-				for(unsigned  j=0;  j<hidden; j++) {	g[j]+=s*w[j];	w[j]-=s*p[j];	}
+		if(eta<0){
+			for(i=0;    i<output;   i++)	y[i]=o[i];
+			return;
+		}
+		else	for(i=0;    i<output;   i++)	o[i]=(o[i]-y[i])*eta;
+		for(l=depth;	l;	l--) {
+			p=a+(l-1)*hidden;	q=l<depth?a+l*hidden:o;	g=d+(l-1)*hidden;	h=l<depth?d+l*hidden:o;
+			for(i=l<depth?1:0;	i<(l<depth?hidden:output);	i++) {
+				w=weight+woff(i,l);	s=(l<depth?gra(q[i]):1)*h[i]*wh;
+				for(j=0;  j<hidden; j++) {	g[j]+=s*w[j];	w[j]-=s*p[j];	}
 			}
 		}
-		w=weight+input*hidden;
-		for(unsigned	i=0;	i<hidden;	i++){ d[i]*=gra(a[i])*wi;	w[i]-=d[i];	}
-		for(unsigned  i=0;  i<input; i++)	{
-			w=weight+i*hidden;	s=x[i];
-			for(unsigned	j=0;	j<hidden;	j++)	w[j]-=s*d[j];
-		}
-	}
-	void	predict(float	*x,	float	*y) {
-		const	float	wh=1/sqrtf(hidden),	wi=1/sqrtf(input+1);
-		float	a[depth*hidden]= {},	*w,	s;
-		for(unsigned  i=0;  i<input; i++)	{
-			w=weight+i*hidden;	s=x[i];
-			for(unsigned	j=0;	j<hidden;	j++)	a[j]+=s*w[j];
-		}
-		w=weight+input*hidden;
-		for(unsigned	i=0;	i<hidden;	i++) a[i]=act(wi*(a[i]+w[i]));
-		a[0]=1;
-		for(unsigned	l=1;	l<depth;	l++) {
-			float	*p=a+(l-1)*hidden,	*q=a+l*hidden;
-			for(unsigned	i=0;	i<hidden;	i++) {
-				w=weight+woff(i,l);	s=0;
-				for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*p[j];
-				q[i]=act(s*wh);
-			}
-			q[0]=1;
-		}
-		float	*p=a+(depth-1)*hidden;
-		for(unsigned	i=0;	i<output;	i++) {
-			w=weight+woff(i,depth);	s=0;
-			for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*p[j];
-			y[i]=s*wh;
+		for(i=0;	i<hidden;	i++) d[i]*=gra(a[i])*wi;
+		for(i=0;  i<=input; i++)	{
+			w=weight+i*hidden;	s=i<input?x[i]:1;
+			for(j=0;	j<hidden;	j++)	w[j]-=s*d[j];
 		}
 	}
 };

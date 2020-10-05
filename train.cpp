@@ -8,7 +8,7 @@
 #include	<vector>
 using	namespace	std;
 const	unsigned	fullbatch=1<<20;
-wymlp<12,32,4,1>	model;
+wymlp<32,2,1>	model;
 
 bool	load_matrix(const	char	*F,	vector<float>	&M,	unsigned	&R,	unsigned	&C) {
 	ifstream	fi(F);
@@ -73,19 +73,19 @@ int	main(int	ac,	char	**av){
 		for(size_t	i=0;	i<sample;	i++)	data[i*feature+j]=(data[i*feature+j]-m)*p;
 	}
 	vector<bool>	trte;	for(size_t	i=0;	i<sample;	i++)	trte.push_back(wy32x32(i,0)&7);
-	model.alloc_weight();	model.init_weight(seed);
+	model.input=xsize;	model.alloc_weight();	model.init_weight(seed);
 
 	timeval	beg,	end;	gettimeofday(&beg,NULL);
 	for(size_t	e=0;	e<epoches;	e++){
 		for(size_t	i=0;	i<fullbatch;	i++){
 			uint64_t	ran;
 			do	ran=wyrand(&seed)%sample;	while(!trte[ran]);
-			model.train(data.data()+ran*feature+ysize,	data.data()+ran*feature,	eta);
+			model.model(data.data()+ran*feature+ysize,	data.data()+ran*feature,	eta);
 		}
 		double	loss=0,	n=0;
 		for(size_t	i=0;	i<sample;	i++)	if(!trte[i]){
 			float	h=0,	t=data[i*feature];
-			model.predict(data.data()+i*feature+ysize,	&h);
+			model.model(data.data()+i*feature+ysize,	&h,	-1);
 			loss+=(h-t)*(h-t);	n+=1;
 		}
 		cerr<<e<<'\t'<<sqrt(loss/n)/prec[0]<<'\n';
@@ -93,6 +93,7 @@ int	main(int	ac,	char	**av){
 	gettimeofday(&end,NULL);
 	float	deltat=(end.tv_sec-beg.tv_sec)+1e-6*(end.tv_usec-beg.tv_usec);
 	cerr<<epoches*fullbatch/deltat<<" sample/sec\n";
+	cerr<<epoches*fullbatch*1e-9*model.flops()/deltat<<" GFLOPs\n";
 	model.free_weight();
 	return	0;
 }
