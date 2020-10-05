@@ -44,7 +44,7 @@ int	main(int	ac,	char	**av){
 	double	sx=0,	sxx=0,	sn=(trainn+testn)*feature;
 	for(size_t	i=0;	i<trainx.size();	i++){	sx+=trainx[i];	sxx+=trainx[i]*trainx[i];	}
 	for(size_t	i=0;	i<testx.size();	i++){	sx+=testx[i];	sxx+=testx[i]*testx[i];	}
-	sx/=sn;	sxx=1/sqrt(sxx/sn-sx*sx);
+	sx/=sn;	sxx=1/sqrt(sxx/sn-sx*sx);	sxx=1.0/128;
 	for(size_t	i=0;	i<trainx.size();	i++)	trainx[i]=sxx*(trainx[i]-sx);
 	for(size_t	i=0;	i<testx.size();	i++)	testx[i]=sxx*(testx[i]-sx);
 	uint64_t	seed=wy32x32(time(NULL),0);

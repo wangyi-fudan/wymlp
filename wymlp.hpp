@@ -7,6 +7,12 @@
 #include	<stdio.h>
 #include	<fcntl.h>
 #include	<math.h>
+/*
+	type=0	L2 regression
+	type=1	Logist regression
+	type=2	Softmax regression
+	type=3	L1 regression
+*/
 template<unsigned	hidden,	unsigned	depth,	unsigned	output,	unsigned	type>
 class	wymlp {
 private:
@@ -85,6 +91,8 @@ public:
 			for(i=0;    i<output;   i++)	o[i]/=s;
 		}
 		break;
+		case	3:
+		break;
 		}
 		if(eta<0) {
 			for(i=0;    i<output;   i++)	y[i]=o[i];
@@ -98,6 +106,8 @@ public:
 		case	2:
 			for(i=0;    i<output;   i++)	o[i]=(o[i]-(i==y[0]))*eta;
 			break;
+		case	3:
+			for(i=0;    i<output;   i++)    o[i]=(o[i]>y[i]?1:-1)*eta;
 		}
 		for(l=depth;	l;	l--) {
 			p=a+(l-1)*hidden;	q=l<depth?a+l*hidden:o;	g=d+(l-1)*hidden;	h=l<depth?d+l*hidden:o;
