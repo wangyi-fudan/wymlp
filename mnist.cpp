@@ -6,6 +6,7 @@
 #include	<zlib.h>
 using	namespace	std;
 const	unsigned	feature=784;
+wymlp<128,2,10,2>	model;	
 
 bool	load_image(const	char	*F,	vector<float>	&D,	unsigned	N){
 	gzFile	in=gzopen(F,	"rb");
@@ -46,20 +47,19 @@ int	main(int	ac,	char	**av){
 	sx/=sn;	sxx=1/sqrt(sxx/sn-sx*sx);
 	for(size_t	i=0;	i<trainx.size();	i++)	trainx[i]=sxx*(trainx[i]-sx);
 	for(size_t	i=0;	i<testx.size();	i++)	testx[i]=sxx*(testx[i]-sx);
-
-	vector<float>	weight(wymlp<float,feature,128,2,10,2>(NULL,NULL,NULL,0,0,-1));	wysrand(time(NULL));	
-	for(size_t	i=0;	i<weight.size();	i++)	weight[i]=wy2gau(wygrand());
+	uint64_t	seed=wy32x32(time(NULL),0);
+	model.input=feature;	model.alloc_weight();	model.init_weight(seed);
 	double	t0=0;
-	for(size_t	it=0;	eta>0.001;	it++,eta*=0.95){
+	for(size_t	it=0;	eta>0.001;	it++,eta*=0.97){
 		timeval	beg,	end;	gettimeofday(&beg,NULL);
 		for(size_t	i=0;	i<trainn;	i++){
-			size_t	ran=wygrand()%trainn;
-			wymlp<float,feature,128,2,10,2>(weight.data(),trainx.data()+ran*feature,	trainy.data()+ran,	eta,	wygrand(),	0.5);
+			size_t	ran=wyrand(&seed)%trainn;
+			model.model(trainx.data()+ran*feature,	trainy.data()+ran,	eta,	wyrand(&seed),0.5);
 		}
 		gettimeofday(&end,NULL);
 		size_t	err=0;	float	p[10];
 		for(size_t	i=0;	i<testn;	i++){
-			wymlp<float,feature,128,2,10,2>(weight.data(),testx.data()+i*feature,	p,	-1,	0,	0.5);
+			model.model(testx.data()+i*feature,	p,	-1,	wyrand(&seed),0.5);
 			uint8_t	pre=0;
 			for(size_t	j=0;	j<10;	j++)	if(p[j]>p[pre])	pre=j;
 			err+=pre!=testy[i];
@@ -67,5 +67,6 @@ int	main(int	ac,	char	**av){
 		cerr.precision(3);	cerr.setf(ios::fixed);	t0+=(end.tv_sec-beg.tv_sec)+1e-6*(end.tv_usec-beg.tv_usec);
 		cerr<<it<<'\t'<<"error="<<100.0*err/testn<<"%\teta="<<eta<<"\ttime="<<t0<<"s\n";
 	}
+	model.free_weight();
 	return	0;
 }

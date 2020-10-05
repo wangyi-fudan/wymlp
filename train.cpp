@@ -8,7 +8,7 @@
 #include	<vector>
 using	namespace	std;
 const	unsigned	fullbatch=1<<20;
-wymlp<32,2,1>	model;
+wymlp<32,2,1,0>	model;
 
 bool	load_matrix(const	char	*F,	vector<float>	&M,	unsigned	&R,	unsigned	&C) {
 	ifstream	fi(F);
@@ -80,12 +80,12 @@ int	main(int	ac,	char	**av){
 		for(size_t	i=0;	i<fullbatch;	i++){
 			uint64_t	ran;
 			do	ran=wyrand(&seed)%sample;	while(!trte[ran]);
-			model.model(data.data()+ran*feature+ysize,	data.data()+ran*feature,	eta);
+			model.model(data.data()+ran*feature+ysize,	data.data()+ran*feature,	eta,	wyrand(&seed),	0);
 		}
 		double	loss=0,	n=0;
 		for(size_t	i=0;	i<sample;	i++)	if(!trte[i]){
 			float	h=0,	t=data[i*feature];
-			model.model(data.data()+i*feature+ysize,	&h,	-1);
+			model.model(data.data()+i*feature+ysize,	&h,	-1,	wyrand(&seed),  0);
 			loss+=(h-t)*(h-t);	n+=1;
 		}
 		cerr<<e<<'\t'<<sqrt(loss/n)/prec[0]<<'\n';
