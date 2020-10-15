@@ -12,7 +12,7 @@ struct	wymlp {
 			float	s=i<input?x[i]:1,	*w=weight+i*hidden;
 			for(unsigned	j=0;	j<hidden;	j++)	a[0][j]+=s*w[j];
 		}
-		for(unsigned	i=0;	i<hidden;	i++){	a[0][i]=act(wi*a[0][i]);	}		a[0][0]=1;
+		for(unsigned	i=0;	i<hidden;	i++){	a[0][i]=act(wi*a[0][i]);	}	a[0][0]=1;
 		for(unsigned	l=1;	l<depth;	l++){
 			for(unsigned	i=1;	i<hidden;	i++){
 				float	s=0,	*w=weight+(input+1)*hidden+(l-1)*hidden*hidden+i*hidden;
