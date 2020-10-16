@@ -4,11 +4,15 @@
 #include	<stdint.h>
 #include	<unistd.h>
 #include	<fstream>
-#include	"wymlp.hpp"
+#include	"wyhash.h"
+#include	"tlfn.hpp"
 #include	<vector>
 using	namespace	std;
 const	unsigned	fullbatch=1<<20;
-wymlp<32,2,1,3>	model;
+const	uint64_t	input=12;
+const	uint64_t	hidden=32;
+const	uint64_t	output=1;
+const	unsigned	size=tlfn_size(input,hidden,output);
 
 bool	load_matrix(const	char	*F,	vector<float>	&M,	unsigned	&R,	unsigned	&C) {
 	ifstream	fi(F);
@@ -43,11 +47,11 @@ int	main(int	ac,	char	**av){
 	cerr<<"* email:  godspeed_china@yeah.net *\n";
 	cerr<<"* date:   25/Oct/2019             *\n";
 	cerr<<"***********************************\n";
-	float	eta=0.01;	size_t	epoches=16;
+	size_t	epoches=16;	float	learning_rate=0.01;
 	int	opt;
 	while((opt=getopt(ac,	av,	"e:n:"))>=0) {
 		switch(opt) {
-		case	'e':	eta=atof(optarg);	break;
+		case	'e':	learning_rate=atof(optarg);	break;
 		case	'n':	epoches=atoi(optarg);	break;
 		default:	document();
 		}
@@ -72,28 +76,26 @@ int	main(int	ac,	char	**av){
 		sx/=sample;	sxx=sqrt(sxx/sample-sx*sx);	float	m=mean[j]=sx,	p=prec[j]=sxx>0?1/sxx:0;
 		for(size_t	i=0;	i<sample;	i++)	data[i*feature+j]=(data[i*feature+j]-m)*p;
 	}
-	vector<bool>	trte;	for(size_t	i=0;	i<sample;	i++)	trte.push_back(wy32x32(i,0)&7);
-	model.input=xsize;	model.alloc_weight();	model.init_weight(seed);
-
+	vector<bool>	trte;	for(size_t	i=0;	i<sample;	i++)	trte.push_back(wyhash64(i,0)&7);
+	float	*model=(float*)aligned_alloc(64,size*sizeof(float));	for(size_t	i=0;	i<size;	i++)	model[i]=wy2gau(wyrand(&seed));
 	timeval	beg,	end;	gettimeofday(&beg,NULL);
 	for(size_t	e=0;	e<epoches;	e++){
 		for(size_t	i=0;	i<fullbatch;	i++){
 			uint64_t	ran;
 			do	ran=wyrand(&seed)%sample;	while(!trte[ran]);
-			model.model(data.data()+ran*feature+ysize,	data.data()+ran*feature,	eta,	wyrand(&seed),	0);
+			tlfn<hidden,output>(input,model,data.data()+ran*feature+ysize,data.data()+ran*feature,learning_rate);
 		}
 		double	loss=0,	n=0;
 		for(size_t	i=0;	i<sample;	i++)	if(!trte[i]){
-			float	h=0,	t=data[i*feature];
-			model.model(data.data()+i*feature+ysize,	&h,	-1,	wyrand(&seed),  0);
+			float	t=data[i*feature],	h=0;
+			tlfn<hidden,output>(input,model,data.data()+i*feature+ysize,&h,-1);
 			loss+=(h-t)*(h-t);	n+=1;
 		}
 		cerr<<e<<'\t'<<sqrt(loss/n)/prec[0]<<'\n';
 	}
+	free(model);
 	gettimeofday(&end,NULL);
 	float	deltat=(end.tv_sec-beg.tv_sec)+1e-6*(end.tv_usec-beg.tv_usec);
 	cerr<<epoches*fullbatch/deltat<<" sample/sec\n";
-	cerr<<epoches*fullbatch*1e-9*model.flops()/deltat<<" GFLOPs\n";
-	model.free_weight();
 	return	0;
 }
