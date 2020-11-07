@@ -3,8 +3,8 @@
 template<unsigned	input,	unsigned	hidden,	unsigned	output>
 class	tlfn{
 private:
-	float	acti(float	x) {	return  x/(1+fabsf(x));	}
-	float	grad(float	x) {	x=1-fabsf(x);	return	x*x;	}
+	float	acti(float	x) {	return  x/(1+(x>0?x:-x));	}
+	float	grad(float	x) {	return	x=1-(x>0?x:-x);	return	x*x;	}
 public:
 	float	weight[(input+1)*hidden+hidden*hidden+output*hidden];
 	void	init(uint64_t	&seed){	for(unsigned	i=0;	i<sizeof(weight)/sizeof(float);	i++)	weight[i]=sqrtf(1+(i>=(input+1)*hidden))*wy2gau(wyrand(&seed));	}
