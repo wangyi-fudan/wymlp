@@ -32,7 +32,6 @@ public:
 		fclose(f);
 		return	true;
 	}
-
 	void	model(float	*x,	float	*y,	float	eta) {
 		float	a[4*hidden+output]={},	*a1=a+hidden,	*d=a1+hidden,	*d1=d+hidden,	*o=d1+hidden,	wh=1/sqrtf(hidden),	wi=1/sqrtf(input+1);
 		for(unsigned	i=0;	i<=input;	i++){
@@ -40,10 +39,13 @@ public:
 			for(unsigned	j=0;	j<hidden;	j++)	a[j]+=s*w[j];
 		}
 		for(unsigned	i=0;	i<hidden;	i++){	a[i]=acti(wi*a[i]);	}	a[0]=1;
-		for(unsigned	i=1;	i<hidden;	i++){
-			float	s=0,	*w=weight+(input+1)*hidden+i*hidden;
-			for(unsigned	j=0;	j<hidden;	j++)	s+=a[j]*w[j];
-			a1[i]=s;
+		for(unsigned	i=0;	i<hidden;	i+=4){
+			float	s0=0,	*w0=weight+(input+1)*hidden+i*hidden;
+			float	s1=0,	*w1=w0+hidden;
+			float	s2=0,	*w2=w1+hidden;
+			float	s3=0,	*w3=w2+hidden;
+			for(unsigned	j=0;	j<hidden;	j++){	s0+=a[j]*w0[j];	s1+=a[j]*w1[j];	s2+=a[j]*w2[j];	s3+=a[j]*w3[j];	}
+			a1[i]=s0;	a1[i+1]=s1;	a1[i+2]=s2;	a1[i+3]=s3;
 		}
 		for(unsigned	i=0;	i<hidden;	i++){	a1[i]=acti(a1[i]*wh);	}	a1[0]=1;
 		for(unsigned	i=0;	i<output;	i++){
@@ -56,9 +58,15 @@ public:
 			float	s=(o[i]>y[i]?1:-1)*wh*eta,	*w=weight+(input+1)*hidden+hidden*hidden+i*hidden;
 			for(unsigned	j=0;	j<hidden;	j++){	d1[j]+=s*w[j];	w[j]-=s*a1[j];	}
 		}
-		for(unsigned	i=0;	i<hidden;	i++){
-			float	s=d1[i]*grad(a1[i])*wh,	*w=weight+(input+1)*hidden+i*hidden;
-			for(unsigned	j=0;	j<hidden;	j++){	d[j]+=s*w[j];	w[j]-=s*a[j];	}
+		for(unsigned	i=0;	i<hidden;	i+=4){
+			float	s0=d1[i]*grad(a1[i])*wh,	*w0=weight+(input+1)*hidden+i*hidden;
+			float	s1=d1[i+1]*grad(a1[i+1])*wh,	*w1=w0+hidden;
+			float	s2=d1[i+2]*grad(a1[i+2])*wh,	*w2=w1+hidden;
+			float	s3=d1[i+3]*grad(a1[i+3])*wh,	*w3=w2+hidden;
+			for(unsigned	j=0;	j<hidden;	j++){	
+				d[j]+=s0*w0[j]+s1*w1[j]+s2*w2[j]+s3*w3[j];	
+				w0[j]-=s0*a[j];	w1[j]-=s1*a[j];	w2[j]-=s2*a[j];	w3[j]-=s3*a[j];	
+			}
 		}
 		for(unsigned	i=0;	i<hidden;	i++)	d[i]*=grad(a[i])*wi;
 		for(unsigned	i=0;	i<=input;	i++){
