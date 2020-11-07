@@ -64,8 +64,9 @@ public:
 			float	s1=d1[i+1]*grad(a1[i+1])*wh,	*w1=w0+hidden;
 			float	s2=d1[i+2]*grad(a1[i+2])*wh,	*w2=w1+hidden;
 			float	s3=d1[i+3]*grad(a1[i+3])*wh,	*w3=w2+hidden;
-			for(unsigned	j=0;	j<hidden;	j++){	
-				d[j]+=s0*w0[j]+s1*w1[j]+s2*w2[j]+s3*w3[j];	
+			#pragma GCC ivdep
+			for(unsigned	j=0;	j<hidden;	j++){
+				d[j]+=s0*w0[j]+s1*w1[j]+s2*w2[j]+s3*w3[j];
 				w0[j]-=s0*a[j];	w1[j]-=s1*a[j];	w2[j]-=s2*a[j];	w3[j]-=s3*a[j];	
 			}
 		}
