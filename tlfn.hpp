@@ -7,7 +7,7 @@ private:
 	float	grad(float	x) {	x=1-fabsf(x);	return	x*x;	}
 public:
 	float	weight[(input+1)*hidden+hidden*hidden+output*hidden];
-	void	init(uint64_t	&seed){	for(unsigned	i=0;	i<sizeof(weight)/sizeof(float);	i++)	weight[i]=(1+(i>=(input+1)*hidden))*wy2gau(wyrand(&seed));	}
+	void	init(uint64_t	&seed){	for(unsigned	i=0;	i<sizeof(weight)/sizeof(float);	i++)	weight[i]=sqrtf(1+(i>=(input+1)*hidden))*wy2gau(wyrand(&seed));	}
 	
 	bool	save(const	char	*F){
 		FILE	*f=fopen(F,	"wb");
@@ -58,6 +58,7 @@ public:
 			float	s=(o[i]>y[i]?1:-1)*wh*eta,	*w=weight+(input+1)*hidden+hidden*hidden+i*hidden;
 			for(unsigned	j=0;	j<hidden;	j++){	d1[j]+=s*w[j];	w[j]-=s*a1[j];	}
 		}
+		d1[0]=0;
 		for(unsigned	i=0;	i<hidden;	i+=4){
 			float	s0=d1[i]*grad(a1[i])*wh,	*w0=weight+(input+1)*hidden+i*hidden;
 			float	s1=d1[i+1]*grad(a1[i+1])*wh,	*w1=w0+hidden;
@@ -69,6 +70,7 @@ public:
 			}
 		}
 		for(unsigned	i=0;	i<hidden;	i++)	d[i]*=grad(a[i])*wi;
+		d[0]=0;
 		for(unsigned	i=0;	i<=input;	i++){
 			float	s=i<input?x[i]:1,	*w=weight+i*hidden;
 			for(unsigned	j=0;	j<hidden;	j++)	w[j]-=s*d[j];
