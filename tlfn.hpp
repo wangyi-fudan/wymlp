@@ -32,7 +32,7 @@ public:
 		fclose(f);
 		return	true;
 	}
-	void	model(float	*x,	float	*y,	float	eta) {
+	float	operator()(float	*x,	float	*y,	float	eta) {
 		float	a[4*hidden+output]={},	*a1=a+hidden,	*d=a1+hidden,	*d1=d+hidden,	*o=d1+hidden,	wh=1/sqrtf(hidden),	wi=1/sqrtf(input+1);
 		for(unsigned	i=0;	i<=input;	i++){
 			float	s=i<input?x[i]:1,	*w=weight+i*hidden;
@@ -53,8 +53,10 @@ public:
 			for(unsigned	j=0;	j<hidden;	j++)	s+=w[j]*a1[j];
 			o[i]=s*wh;
 		}
-		if(eta<0){	for(unsigned	i=0;	i<output;	i++){	y[i]=o[i];	}	return;	}
+		if(eta<0){	for(unsigned	i=0;	i<output;	i++){	y[i]=o[i];	}	return	0;	}
+		float	loss=0;
 		for(unsigned	i=0;	i<output;	i++){
+			loss+=fabsf(o[i]-y[i]);
 			float	s=(o[i]>y[i]?1:-1)*wh*eta,	*w=weight+(input+1)*hidden+hidden*hidden+i*hidden;
 			for(unsigned	j=0;	j<hidden;	j++){	d1[j]+=s*w[j];	w[j]-=s*a1[j];	}
 		}
@@ -76,5 +78,6 @@ public:
 			float	s=i<input?x[i]:1,	*w=weight+i*hidden;
 			for(unsigned	j=0;	j<hidden;	j++)	w[j]-=s*d[j];
 		}
+		return	loss;
 	}
 };
