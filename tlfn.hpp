@@ -5,8 +5,13 @@ template<size_t	input,	size_t	hidden,	size_t	output>
 struct	tlfn{
 	float	acti(float	x) {	return  x/sqrtf(1+x*x);	}
 	float	grad(float	x) {	x=1-x*x;	return	x*sqrtf(x);	}
-	float	weight[(input+1)*hidden+hidden*hidden+output*hidden];
-	tlfn(){	for(size_t	i=0;	i<sizeof(weight)/sizeof(float);	i++)	weight[i]=2.0f*rand()/(float)RAND_MAX-1;}
+	float	*weight;
+	tlfn(){	
+		size_t	size=(input+1)*hidden+hidden*hidden+output*hidden;
+		weight=(float*)aligned_alloc(64,size*sizeof(float));
+		for(size_t	i=0;	i<size;	i++)	weight[i]=2.0f*rand()/(float)RAND_MAX-1;
+	}
+	~tlfn(){	free(weight);	}
 	void	operator()(float	*x,	float	*y,	float	eta) {//eta<0 for prediction stored in y
 		float	a[4*hidden+output]={},	*a1=a+hidden,	*d=a1+hidden,	*d1=d+hidden,	*o=d1+hidden;
 		const	float	wh=1/sqrtf(hidden),	wi=1/sqrtf(input+1);
