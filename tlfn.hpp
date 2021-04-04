@@ -20,7 +20,7 @@ public:
 			for(uint32_t	j=0;	j<hidden;	j++)	a[j]+=s*w[j];
 		}
 		for(uint32_t	i=0;	i<hidden;	i++){	a[i]=acti(wi*a[i]);	}	a[0]=1;
-		for(uint32_t	i=0;	i<hidden;	i+=4){
+		for(uint32_t	i=0;	i<hidden;	i++){
 			float	s=0,	*w=weight+(input+1)*hidden+i*hidden;
 			for(uint32_t	j=0;	j<hidden;	j++)	s+=a[j]*w[j];
 			a1[i]=s;
