@@ -3,8 +3,8 @@
 #include	<math.h>
 template<size_t	input,	size_t	hidden,	size_t	output>
 struct	tlfn{
-	float	acti(float	x) {	return  x/sqrtf(1+x*x);	}
-	float	grad(float	x) {	x=1-x*x;	return	x*sqrtf(x);	}
+	float	acti(float	x) {	return  x/(1+(x>0?x:-x));	}
+	float	grad(float	x) {	x=1-(x>0?x:-x);	return	x*x;	}
 	float	*weight;
 	tlfn(){	
 		size_t	size=(input+1)*hidden+hidden*hidden+output*hidden;
